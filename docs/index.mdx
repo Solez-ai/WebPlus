@@ -43,10 +43,16 @@ Web+ is **not** a JavaScript replacement for beginners. It's a language for expe
     Compiles to optimized WebAssembly via LLVM, with minimal JavaScript glue only when needed.
   </Card>
   <Card title="Concurrency Built-In" icon="arrows-split-up-and-left">
-    First-class support for Web Workers and concurrent execution with deterministic memory behavior.
+    ThreadPool, Mutex, Atomic operations, and Web Workers for parallel execution.
   </Card>
   <Card title="Direct WASM Generation" icon="bolt">
     Generate WebAssembly directly without Emscripten - simpler builds, faster iteration.
+  </Card>
+  <Card title="Memory Safety" icon="shield">
+    Arc<T> (automatic reference counting), Option<T> (null safety), Result<T, E> (error handling).
+  </Card>
+  <Card title="Compile-Time Optimization" icon="zap">
+    Constant folding and dead code elimination for faster runtime.
   </Card>
   <Card title="Full IDE Support" icon="terminal">
     LSP-powered IntelliSense, diagnostics, hover tooltips, and go-to-definition.
