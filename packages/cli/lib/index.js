@@ -10,7 +10,7 @@ import { testCommand } from './commands/test.js';
 import { packageCommand } from './commands/package.js';
 import { createCommand } from './commands/create.js';
 const program = new Command();
-console.log(chalk.cyan.bold('Web+') + chalk.gray(' v0.1.0'));
+console.log(chalk.cyan.bold('Web+') + chalk.gray(' v0.2.0'));
 program
     .name('webplus')
     .description('Web+ compiler and toolchain')

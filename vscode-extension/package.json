@@ -2,7 +2,7 @@
     "name": "webplus-vscode",
     "displayName": "Web+",
     "description": "Language support for Web+ - A C++-inspired systems language for the web",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "publisher": "Solez",
     "engines": {
         "vscode": "^1.80.0"
