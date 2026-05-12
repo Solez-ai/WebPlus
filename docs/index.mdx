@@ -1,0 +1,141 @@
+---
+title: "Web+ Documentation"
+description: "A C++-inspired systems-level language for the web that compiles to WebAssembly"
+---
+
+<img
+  className="block dark:hidden"
+  src="/logo/light.svg"
+  alt="Web+ Logo"
+  style={{ width: '200px', margin: '0 auto 2rem' }}
+/>
+<img
+  className="hidden dark:block"
+  src="/logo/dark.svg"
+  alt="Web+ Logo"
+  style={{ width: '200px', margin: '0 auto 2rem' }}
+/>
+
+# Welcome to Web+
+
+**Web+** (webplus) is a systems-level programming language designed specifically for the web. Inspired by C++, Web+ combines low-level performance and memory control with web-native primitives, compiling directly to WebAssembly for deterministic, high-performance execution.
+
+## Why Web+?
+
+Web+ is **not** a JavaScript replacement for beginners. It's a language for experienced systems and C++ programmers who need:
+
+- **C++-level performance** with manual memory management
+- **Web-native primitives** as first-class language features
+- **Deterministic execution** without garbage collection
+- **Cross-platform** support (browser, server, edge)
+- **Zero-cost abstractions** and predictable behavior
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Systems-Level Control" icon="microchip">
+    Manual memory management with stack, heap, and arena allocators. Full control over memory layout and execution.
+  </Card>
+  <Card title="Web-Native Primitives" icon="globe">
+    DOM manipulation, HTTP routing, fetch, and workers built directly into the language—not as libraries.
+  </Card>
+  <Card title="WebAssembly Target" icon="cube">
+    Compiles to optimized WebAssembly via LLVM, with minimal JavaScript glue only when needed.
+  </Card>
+  <Card title="Concurrency Built-In" icon="arrows-split-up-and-left">
+    First-class support for Web Workers and concurrent execution with deterministic memory behavior.
+  </Card>
+  <Card title="Direct WASM Generation" icon="bolt">
+    Generate WebAssembly directly without Emscripten - simpler builds, faster iteration.
+  </Card>
+  <Card title="Full IDE Support" icon="terminal">
+    LSP-powered IntelliSense, diagnostics, hover tooltips, and go-to-definition.
+  </Card>
+</CardGroup>
+
+## Quick Example
+
+```webplus
+// Client-side DOM manipulation
+void main() {
+    dom::Element button = dom::get("#submit");
+    button.on("click", [] {
+        dom::get("#status").text("Clicked!");
+    });
+}
+
+// Server-side HTTP routing
+route GET "/api/hello" -> Response {
+    return json({ "message": "Hello from Web+!" });
+}
+
+// Concurrent background task
+worker w = worker::spawn([] {
+    return fib(40);
+});
+int result = w.join();
+```
+
+## Target Audience
+
+Web+ is designed for:
+
+- **Systems programmers** who want the web as their target platform
+- **C++ developers** seeking WebAssembly-first development
+- **Performance-critical** applications (CAD, video/audio editors, games)
+- **Real-time** and **computationally intensive** web applications
+
+## Get Started
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Install Web+ and build your first application in minutes
+  </Card>
+  <Card title="Language Spec" icon="book" href="/language-spec/overview">
+    Complete language specification with syntax and semantics
+  </Card>
+  <Card title="Tutorials" icon="graduation-cap" href="/tutorials/hello-world">
+    Step-by-step guides for common use cases
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/stdlib">
+    Comprehensive standard library documentation
+  </Card>
+</CardGroup>
+
+## Architecture
+
+Web+ supports two build pipelines:
+
+### Standard Pipeline (Emscripten)
+1. **Web+ Source** → Parser → AST
+2. **AST** → Code Generator → C++
+3. **C++** → Emscripten → WebAssembly
+4. **WebAssembly** + minimal JS glue → Browser/Server
+
+### Direct WASM Pipeline
+1. **Web+ Source** → Parser → AST
+2. **AST** → WASM Generator → WAT (WebAssembly Text)
+3. **WAT** → wat2wasm → Binary WASM
+
+The direct pipeline is ideal for simpler projects or when Emscripten isn't available.
+
+## Philosophy
+
+Web+ follows strict design principles:
+
+- **Performance first** — All abstractions are zero-cost or opt-in
+- **Explicit over implicit** — Memory and concurrency behavior is visible
+- **Web-native, not web-compatible** — Web APIs are language primitives
+- **No beginner optimizations** — Designed for experienced developers
+- **Determinism matters** — Predictable execution and memory behavior
+
+## Community & Support
+
+<Card title="GitHub Repository" icon="github" href="https://github.com/Solez-ai/webplus">
+  Star the project, report issues, and contribute to Web+
+</Card>
+
+---
+
+**Made by [Samin Yeasar](https://github.com/Solez-ai)**  
+Licensed under MIT

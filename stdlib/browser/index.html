@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web+ Application</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        #app {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            gap: 1rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(34, 211, 238, 0.1);
+            border-top-color: #22d3ee;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .error h3 {
+            color: #ef4444;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Loading Web+ Application...</p>
+        </div>
+    </div>
+
+    <script src="runtime.js"></script>
+    <script>
+        (function() {
+            'use strict';
+
+            const wasmFile = 'main.wasm';
+            const jsFile = 'main.js';
+
+            function showError(message) {
+                const app = document.getElementById('app');
+                app.innerHTML = `
+                    <div class="error">
+                        <h3>Web+ Runtime Error</h3>
+                        <p>${message}</p>
+                    </div>
+                `;
+            }
+
+            function loadWasm() {
+                if (typeof Module === 'undefined') {
+                    window.Module = {
+                        preRun: [],
+                        postRun: [],
+                        print: function(text) {
+                            console.log('[Web+]', text);
+                        },
+                        printErr: function(text) {
+                            console.error('[Web+ Error]', text);
+                        },
+                        onRuntimeInitialized: function() {
+                            console.log('[Web+] Module initialized');
+                            document.querySelectorAll('.loading').forEach(el => {
+                                el.style.display = 'none';
+                            });
+                            
+                            if (typeof Module.runtime_init === 'function') {
+                                Module.runtime_init();
+                            }
+                        },
+                        onAbort: function(what) {
+                            showError('WebAssembly module aborted: ' + what);
+                        }
+                    };
+                }
+
+                const script = document.createElement('script');
+                script.src = jsFile;
+                script.onerror = function() {
+                    showError('Failed to load Web+ application. Make sure ' + jsFile + ' exists.');
+                };
+                document.body.appendChild(script);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadWasm);
+            } else {
+                loadWasm();
+            }
+
+            window.addEventListener('beforeunload', function() {
+                if (typeof Module !== 'undefined' && typeof Module.runtime_cleanup === 'function') {
+                    Module.runtime_cleanup();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

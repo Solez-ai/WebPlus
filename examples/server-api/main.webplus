@@ -1,0 +1,37 @@
+// Web+ Server API Example
+// Demonstrates HTTP routing and JSON responses
+
+struct User {
+    int id;
+    string name;
+    string email;
+};
+
+route GET "/api/hello" -> Response {
+    return json({ "message": "Hello from Web+!" });
+}
+
+route GET "/api/user/:id" -> Response {
+    int userId = param("id");
+    
+    User* user = alloc<User>(1);
+    user->id = userId;
+    user->name = "Samin Yeasar";
+    user->email = "sheditzofficial918@gmail.com";
+    
+    Response response = json(user);
+    
+    free(user);
+    
+    return response;
+}
+
+route POST "/api/user" -> Response {
+    // In a real application, would parse request body
+    // and create new user in database
+    
+    return json({
+        "success": true,
+        "message": "User created"
+    });
+}

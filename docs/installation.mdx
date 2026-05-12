@@ -1,0 +1,289 @@
+---
+title: "Installation"
+description: "Detailed installation guide for Web+ and its dependencies"
+---
+
+# Installation
+
+This page provides detailed installation instructions for Web+ and all its dependencies.
+
+## System Requirements
+
+### Supported Platforms
+
+- **Windows** 10/11 (x64)
+- **macOS** 11 Big Sur or later
+- **Linux** (Ubuntu 20.04+, Fedora 35+, or equivalent)
+
+### Required Software
+
+- **Node.js** v18.0.0 or higher
+- **npm** v9.0.0 or higher
+- **Git** (for cloning examples)
+
+### Optional Software
+
+- **Emscripten SDK** v3.1.0+ - Required for full-featured builds with threading and advanced runtime
+- **WABT** (WebAssembly Binary Toolkit) - For direct binary WASM generation without Emscripten
+
+## Step 1: Install Node.js
+
+### Windows
+
+Download from [nodejs.org](https://nodejs.org/) and run the installer.
+
+### macOS
+
+Using Homebrew:
+
+```bash
+brew install node
+```
+
+### Linux
+
+```bash
+# Ubuntu/Debian
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Fedora
+sudo dnf install nodejs
+```
+
+Verify installation:
+
+```bash
+node --version
+npm --version
+```
+
+## Step 2: Install Emscripten SDK
+
+Emscripten is required to compile C++ to WebAssembly.
+
+### All Platforms
+
+```bash
+# Clone the Emscripten repository
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+
+# Download and install the latest SDK tools
+./emsdk install latest
+
+# Activate the SDK for current user
+./emsdk activate latest
+
+# Set up environment variables (required for every session)
+source ./emsdk_env.sh
+```
+
+### Permanent PATH Setup
+
+#### Windows (PowerShell)
+
+Add to your PowerShell profile:
+
+```powershell
+# Edit profile
+notepad $PROFILE
+
+# Add this line
+& "C:\path\to\emsdk\emsdk_env.ps1"
+```
+
+#### macOS/Linux (Bash/Zsh)
+
+Add to `~/.bashrc`, `~/.zshrc`, or `~/.profile`:
+
+```bash
+# Add to shell config
+echo 'source "/path/to/emsdk/emsdk_env.sh"' >> ~/.bashrc
+
+# Reload shell
+source ~/.bashrc
+```
+
+### Verify Emscripten
+
+```bash
+emcc --version
+```
+
+Expected output:
+
+```
+emcc (Emscripten gcc/clang-like replacement) 3.1.50 (...)
+```
+
+### (Optional) Install WABT for Direct WASM
+
+WABT lets you compile WebAssembly Text (WAT) to binary WASM without Emscripten.
+
+```bash
+# macOS
+brew install wabt
+
+# Ubuntu/Debian
+sudo apt-get install wabt
+
+# Windows (using Chocolatey)
+choco install wabt
+```
+
+Verify installation:
+
+```bash
+wat2wasm --version
+```
+
+## Step 3: Install Web+
+
+### Install Globally (NPM)
+
+```bash
+# Install the complete toolchain
+npm install -g @solez-ai/webplus
+```
+
+### Expected Output
+
+```bash
+$ webplus --version
+webplus v0.1.0
+```
+
+## Step 4: Verify Installation
+
+Create a test file `test.webplus`:
+
+```webplus
+void main() {
+    dom::get("#app").text("Web+ is working!");
+}
+```
+
+Build it:
+
+```bash
+webplus build test.webplus -o test-build
+```
+
+If successful, you'll see:
+
+```
+✔ Build successful! Output: /path/to/test-build
+```
+
+## Install VS Code Extension
+
+The Web+ VS Code extension provides syntax highlighting, IntelliSense, and debugging.
+
+### Install from Source
+
+```bash
+cd webplus/vscode-extension
+npm install
+npm run build
+
+# Package extension
+vsce package
+
+# Install in VS Code
+code --install-extension webplus-0.1.0.vsix
+```
+
+### Features
+
+- Syntax highlighting for `.webplus` files
+- IntelliSense for Web+ keywords and standard library
+- Inline error diagnostics
+- Code snippets
+
+## Troubleshooting
+
+### Emscripten Installation Issues
+
+**Error: `emcc: command not found`**
+
+Solution: Ensure `emsdk_env.sh` is sourced in your current shell:
+
+```bash
+source /path/to/emsdk/emsdk_env.sh
+```
+
+**Error: `EMSDK environment variables not set`**
+
+Solution: Re-activate Emscripten:
+
+```bash
+cd /path/to/emsdk
+./emsdk activate latest
+source ./emsdk_env.sh
+```
+
+### Web+ Build Issues
+
+**Error: `Cannot find module '@webplus/transpiler'`**
+
+Solution: Ensure dependencies are installed:
+
+```bash
+cd webplus
+npm install
+npm run build
+```
+
+**Error: `Permission denied` during `npm link`**
+
+Solution: Use sudo (Linux/macOS) or run as Administrator (Windows):
+
+```bash
+sudo npm link
+```
+
+### Browser Compatibility
+
+Web+ requires WebAssembly support. Supported browsers:
+
+- **Chrome** 57+
+- **Firefox** 52+
+- **Safari** 11+
+- **Edge** 16+
+
+## Updating Web+
+
+To update to the latest version:
+
+```bash
+cd webplus
+git pull origin main
+npm install
+npm run build
+```
+
+## Uninstalling
+
+To completely remove Web+:
+
+```bash
+# Unlink CLI
+npm unlink -g @webplus/cli
+
+# Remove directory
+rm -rf /path/to/webplus
+```
+
+## Next Steps
+
+Now that Web+ is installed:
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Build your first Web+ application
+  </Card>
+  <Card title="Tutorials" icon="graduation-cap" href="/tutorials/hello-world">
+    Follow step-by-step guides
+  </Card>
+</CardGroup>

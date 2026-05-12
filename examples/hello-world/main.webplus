@@ -1,0 +1,7 @@
+// Web+ Hello World Example
+// This demonstrates basic DOM manipulation with Web+
+
+void main() {
+    dom::Element app = dom::get("#app");
+    app.text("Hello, Web+!");
+}

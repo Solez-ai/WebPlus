@@ -1,0 +1,55 @@
+---
+title: 'Workers API'
+description: 'Manage background threads in Web+'
+---
+
+# Workers API
+
+The Workers API provides tools for offloading heavy computations to background threads.
+
+## Types
+
+### worker
+A handle to a background worker thread.
+
+## Functions
+
+### worker::spawn(callback)
+Spawns a new worker thread and executes the provided function.
+- **Returns**: `worker`
+
+### worker.join()
+Synchronously waits for the worker to finish and returns its result.
+- **Complexity**: Blocks until completion.
+
+### worker.detach()
+Allows the worker to run independently. The main thread will not wait for it.
+
+---
+
+## Example: Background Calculation
+
+```cpp
+int heavyWork() {
+    int sum = 0;
+    for(int i = 0; i < 1000000; i++) sum += i;
+    return sum;
+}
+
+void main() {
+    worker w = worker::spawn(heavyWork);
+    
+    // Do other things...
+    
+    int result = w.join();
+    webplus::print("Sum: ", result);
+}
+```
+
+---
+
+## Best Practices
+
+- **Avoid frequent spawning**: Spawning a worker has some overhead. Use workers for substantial tasks.
+- **Data Isolation**: Workers do not share stack variables. Pass data through heap pointers or shared structures.
+- **UI Responsiveness**: Use workers for anything that takes more than 16ms to ensure your app stays at 60fps.

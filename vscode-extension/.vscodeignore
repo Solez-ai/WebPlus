@@ -1,0 +1,21 @@
+# Ignore node_modules (except prod deps if needed)
+node_modules/
+!node_modules/vscode-languageclient/
+!node_modules/vscode-languageserver/
+!node_modules/vscode-languageserver-textdocument/
+
+# Ignore git
+.git
+.gitignore
+
+# Ignore TS source if you only need compiled JS
+src/
+
+# Ignore tests
+*.test.ts
+tsconfig*.json
+
+# VS Code stuff
+.vscode/
+.vscode-test/
+

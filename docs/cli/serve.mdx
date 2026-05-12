@@ -1,0 +1,78 @@
+---
+title: 'Serve Command'
+description: 'Using the Web+ development server'
+---
+
+# Development Server
+
+The `serve` command is designed to provide a "live" development experience. It combines a static file server with an automated rebuild engine.
+
+## Quick Start
+
+```bash
+webplus serve src --open
+```
+
+This command will:
+1.  Scan the `src` directory for `.webplus` files.
+2.  Start a local web server at `http://localhost:3000`.
+3.  Automatically open your browser to that address.
+
+---
+
+## How Hot-Reloading Works
+
+The Web+ dev server uses a high-efficiency file watcher:
+
+1.  **Watch**: It monitors every file in your project directory.
+2.  **Trigger**: When a `.webplus` file is saved, it immediately triggers a background `build`.
+3.  **Halt & Sync**: The browser receives a signal via WebSocket to reload. 
+4.  **Refresh**: The browser refreshes, loading the newly compiled `.wasm` binary.
+
+This cycle typically happens in under **500ms**, allowing for nearly instantaneous UI feedback.
+
+---
+
+## Configuration Options
+
+| Flag | Description | Default |
+| :--- | :--- | :--- |
+| `-p, --port` | The port for the HTTP server. | `3000` |
+| `--open` | Automatically open the browser. | `false` |
+| `--dir` | The directory to serve files from. | Current |
+| `--watch` | Comma-separated list of extra directories to watch. | `src` |
+
+---
+
+## Advanced Usage
+
+### Customizing Ports
+If port 3000 is occupied, you can easily shift:
+
+```bash
+webplus serve . --port 8080
+```
+
+### Serving Multiple Projects
+You can run multiple instances of the server by assigning different ports:
+
+```bash
+# Terminal 1
+webplus serve project_a --port 3001
+
+# Terminal 2
+webplus serve project_b --port 3002
+```
+
+---
+
+## Troubleshooting
+
+### "Port already in use"
+This happens if another server is running. Use `-p` to choose a new port or close the existing server.
+
+### "WASM not loading"
+Ensure you are using `webplus serve` instead of opening the `index.html` file directly in your browser. Browsers block WebAssembly loading from `file://` URLs due to security restrictions (CORS).
+
+### Files not updating
+Ensure the directory you are "serving" is the same directory where your `build` command is outputting its artifacts, or simply use `webplus serve src` which handles the build-serve loop internally.

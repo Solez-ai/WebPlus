@@ -1,0 +1,64 @@
+---
+title: 'Fetch API'
+description: 'Asynchronous HTTP requests in the browser'
+---
+
+# Fetch API
+
+The Fetch API allows Web+ applications to make network requests to servers.
+
+## Functions
+
+### fetch(url)
+Makes a simple HTTP `GET` request.
+- **Returns**: `webplus::Promise`
+
+### fetch(url, method, body)
+Makes an HTTP request with a specific method and payload.
+- **Returns**: `webplus::Promise`
+
+---
+
+## Response Class
+
+The `Response` object is returned once the fetch promise resolves.
+
+### Methods
+- `ok()`: Returns true if the status is in the 200-299 range.
+- `status()`: Returns the HTTP status code.
+- `body()`: Returns the raw response body as a `webplus::String`.
+- `json_string()`: A convenience method to extract the body for JSON parsing.
+
+---
+
+## Promise Class
+
+Web+ uses a specialized `Promise` class to handle the asynchronous nature of web requests.
+
+### Usage
+
+```cpp
+webplus::Promise p = webplus::fetch("https://api.example.com/status");
+
+// Use the then() method to handle the result
+p.then([](webplus::Response res) {
+    if (res.ok()) {
+        webplus::print("Response: ", res.body().c_str());
+    }
+});
+```
+
+> **Note**: In v0.1, the full callback trampoline for `then()` is in a preview state. Native C++ lambdas with captures might have limitations until v0.2.
+
+---
+
+## Example: POSTing Data
+
+```cpp
+webplus::String url = "/api/v1/log";
+webplus::String payload = "{ \"event\": \"app_start\" }";
+
+webplus::fetch(url, "POST", payload).then([](webplus::Response res) {
+    webplus::print("Log sent. Status: ", res.status());
+});
+```

@@ -1,0 +1,117 @@
+---
+title: 'Build Command'
+description: 'Deep dive into the Web+ build system'
+---
+
+# Building Applications
+
+The `build` command is what turns your human-readable Web+ code into high-performance machine code (WebAssembly). 
+
+## Basic Build
+
+To build a project whose entry point is `main.webplus`:
+
+```bash
+webplus build main.webplus
+```
+
+This will create a `build/` folder containing:
+- `main.wasm`: The compiled binary.
+- `main.js`: The JavaScript bridge that interacts with the browser APIs.
+- `index.html`: A minimal runner that loads the WASM module.
+
+---
+
+## Production Builds
+
+When you're ready to deploy, you should use the `--optimize` flag.
+
+```bash
+webplus build src/main.webplus --optimize --output dist
+```
+
+### What `--optimize` does:
+1.  **LTO (Link Time Optimization)**: Optimizes the code across multiple files.
+2.  **Size Reduction**: Strips out unused standard library functions.
+3.  **Instruction Optimization**: Uses LLVM's O3 level to generate the most efficient WASM instructions possible.
+
+---
+
+## Detailed Options Reference
+
+| Option | Description |
+| :--- | :--- |
+| `-o, --output` | Custom output path. If the directory doesn't exist, it will be created. |
+| `-f, --format` | Output format: `wasm` (default), `wat` (WebAssembly Text), or `cpp` (C++ intermediate). |
+| `--optimize` | Highly recommended for production. Significantly reduces file size and increases speed. |
+| `--debug` | Keeps source maps and enables `assert()` statements and bounds checking. |
+| `--target` | Set to `browser` (default) for web apps or `server` for WASI-based server apps. |
+| `--emcc-flags` | Pass raw flags directly to the underlying Emscripten compiler. |
+
+## Direct WebAssembly Generation
+
+Web+ now supports **direct WebAssembly generation** without requiring Emscripten. This is useful when you want a simpler build pipeline or don't have Emscripten installed.
+
+### Using WAT Format (Text)
+
+```bash
+webplus build main.webplus --format wat
+```
+
+This generates `app.wat` - human-readable WebAssembly text format.
+
+### Using Direct WASM (Binary)
+
+If you have the WABT toolkit installed, you can generate binary WASM directly:
+
+```bash
+# Install WABT (WebAssembly Binary Toolkit)
+# https://github.com/WebAssembly/wabt
+
+# Build to binary WASM
+webplus build main.webplus --format wasm
+```
+
+This will:
+1. Generate `app.wat` (text format)
+2. Compile to `app.wasm` (binary) using wat2wasm
+3. Create `webplus-loader.js` - a simple JS loader to run the WASM
+
+### When to Use Direct WASM
+
+| Approach | Use Case |
+| :--- | :--- |
+| Direct WASM (`--format wasm`) | Simple projects, no Emscripten needed |
+| WAT (`--format wat`) | Debugging, learning WebAssembly |
+| C++ (`--format cpp`) | Integration with existing C++ codebases |
+| Default (Emscripten) | Full runtime, threading, advanced features |
+
+---
+
+## The Build Pipeline
+
+Understanding the pipeline helps in debugging complex build failures:
+
+1.  **Transpilation**: The CLI reads your `.webplus` files and converts them into C++ source code. You can see this intermediate code in the output directory if you use the `--verbose` flag.
+2.  **Inclusion**: The CLI injects the necessary parts of the Web+ Standard Library (located in `stdlib/`).
+3.  **WASM Mapping**: High-level primitives like `worker` and `route` are mapped to their low-level C++/JS implementations.
+4.  **Emscripten Invocation**: Finally, the CLI invokes `emcc` to generate the final binary artifacts.
+
+---
+
+## Best Practices
+
+### Multimodal Builds
+For larger projects, don't build every file every time. Organize your code into modules and use a `webplus.config.json` to define build targets:
+
+```json
+{
+  "entry": "src/main.webplus",
+  "output": "dist",
+  "optimize": true,
+  "target": "browser"
+}
+```
+
+### Debugging with `--debug`
+Always use `--debug` during development. It ensures that if your code tries to access an array out of bounds or dereference a null pointer, the WASM runtime will provide a readable stack trace in the browser console instead of simply crashing.

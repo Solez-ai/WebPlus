@@ -1,0 +1,99 @@
+---
+title: 'Memory Management'
+description: 'Mastering explicit memory control in Web+'
+---
+
+# Memory Management Tutorial
+
+One of the most powerful features of Web+ is explicit memory control. Unlike JavaScript, which uses a garbage collector, Web+ lets you decide exactly when memory is used and when it is released.
+
+## 1. Stack Allocation (Automatic)
+
+Most variables you create inside a function are stored on the **Stack**. This memory is automatically managed for you.
+
+```webplus
+void process() {
+    int x = 100;         // Stack allocated
+    float buffer[10];    // Stack allocated
+    
+    // x and buffer are automatically destroyed when 'process' ends
+}
+```
+
+---
+
+## 2. Heap Allocation (Manual)
+
+If you need data to persist beyond the current function, or if you don't know the size of the data until runtime, you must use the **Heap**.
+
+Use the `webplus::alloc<T>(count)` function to reserve memory.
+
+```webplus
+void main() {
+    // 1. Allocate space for 100 integers
+    int* data = webplus::alloc<int>(100);
+    
+    // 2. Use the memory
+    data[0] = 5;
+    data[99] = 10;
+    
+    // 3. YOU MUST release the memory!
+    webplus::free_ptr(data);
+}
+```
+
+---
+
+## 3. The Lifecycle of a String
+
+Strings in Web+ are heap-allocated objects. You must explicitly clear them if you create them dynamically.
+
+```webplus
+void main() {
+    webplus::String name = "Web+ Build";
+    name.append(" v0.1");
+    
+    webplus::print(name.c_str());
+    
+    // Release the internal buffer
+    name.clear();
+}
+```
+
+---
+
+## 4. Advanced: Using an Arena
+
+If your application needs to make many small, short-lived allocations (for example, during a single draw frame in a game), using individual `alloc`/`free` calls can be slow. An **Arena** solves this by letting you free everything at once.
+
+```webplus
+void run_frame() {
+    // Create an arena for this frame
+    webplus::Arena<char> frameArena(1024 * 10); // 10KB
+    
+    // Allocate small buffers
+    char* temp1 = frameArena.allocate(100);
+    char* temp2 = frameArena.allocate(250);
+    
+    // Process...
+    
+    // No need to free individual pointers. 
+    // All memory is reclaimed when frameArena goes out of scope or is reset().
+}
+```
+
+---
+
+## The Golden Rules of Memory
+
+1.  **Every `alloc` needs a `free_ptr`**: Forgetting to free memory creates a "Memory Leak," which can eventually crash the user's browser tab.
+2.  **Never use a pointer after calling `free_ptr`**: This is called a "Dangling Pointer" and results in undefined behavior.
+3.  **Prefer the Stack**: Whenever possible, use local stack variables. They are faster and safer.
+4.  **Use `--debug`**: Always build with the `--debug` flag during development. It enables a specialized runtime that will warn you about bounds violations or invalid memory access.
+
+```bash
+webplus build main.webplus --debug
+```
+
+## Next Steps
+Ready to build something more complex? Check out the [Server API Tutorial](/tutorials/server-api) to learn about networking.

@@ -1,0 +1,176 @@
+struct DataPoint {
+    int timestamp;
+    float value;
+};
+
+struct Chart {
+    DataPoint* data;
+    int capacity;
+    int count;
+    string title;
+    dom::Element canvas;
+};
+
+Chart* createChart(string selector, string title, int capacity) {
+    Chart* chart = alloc<Chart>(1);
+    chart->data = alloc<DataPoint>(capacity);
+    chart->capacity = capacity;
+    chart->count = 0;
+    chart->title = title;
+    chart->canvas = dom::get(selector);
+    return chart;
+}
+
+void addDataPoint(Chart* chart, float value) {
+    if (chart->count >= chart->capacity) {
+        for (int i = 0; i < chart->capacity - 1; i++) {
+            chart->data[i] = chart->data[i + 1];
+        }
+        chart->count = chart->capacity - 1;
+    }
+    
+    chart->data[chart->count].timestamp = getCurrentTime();
+    chart->data[chart->count].value = value;
+    chart->count++;
+    
+    renderChart(chart);
+}
+
+void renderChart(Chart* chart) {
+    string svg = "<svg width='600' height='300'>";
+    
+    svg += "<text x='10' y='20' fill='#22d3ee'>" + chart->title + "</text>";
+    
+    if (chart->count > 1) {
+        float maxValue = findMaxValue(chart);
+        float xStep = 580.0 / (chart->count - 1);
+        float yScale = 250.0 / maxValue;
+        
+        string path = "<path d='M 10 " + toString(280 - chart->data[0].value * yScale);
+        
+        for (int i = 1; i < chart->count; i++) {
+            float x = 10 + i * xStep;
+            float y = 280 - chart->data[i].value * yScale;
+            path += " L " + toString(x) + " " + toString(y);
+        }
+        
+        path += "' stroke='#4ade80' stroke-width='2' fill='none'/>";
+        svg += path;
+    }
+    
+    svg += "</svg>";
+    chart->canvas.html(svg);
+}
+
+float findMaxValue(Chart* chart) {
+    float max = 0.0;
+    for (int i = 0; i < chart->count; i++) {
+        if (chart->data[i].value > max) {
+            max = chart->data[i].value;
+        }
+    }
+    return max > 0 ? max : 100.0;
+}
+
+Chart* cpuChart;
+Chart* memoryChart;
+Chart* networkChart;
+
+worker dataWorker;
+
+void startDataCollection() {
+    dataWorker = worker::spawn([] {
+        while (true) {
+            fetch("/api/metrics")
+                .then([](Response r) {
+                    auto metrics = r.json();
+                    updateCharts(metrics);
+                });
+            
+            sleep(1000);
+        }
+        return 0;
+    });
+}
+
+void updateCharts(auto metrics) {
+    addDataPoint(cpuChart, metrics["cpu"]);
+    addDataPoint(memoryChart, metrics["memory"]);
+    addDataPoint(networkChart, metrics["network"]);
+    
+    updateStats(metrics);
+}
+
+void updateStats(auto metrics) {
+    dom::get("#cpuValue").text(toString(metrics["cpu"]) + "%");
+    dom::get("#memoryValue").text(toString(metrics["memory"]) + " MB");
+    dom::get("#networkValue").text(toString(metrics["network"]) + " KB/s");
+    
+    dom::get("#cpuBar").style.width = toString(metrics["cpu"]) + "%";
+    dom::get("#memoryBar").style.width = toString((metrics["memory"] / 1024.0) * 100) + "%";
+}
+
+int getCurrentTime() {
+    return (int)(Date.now() / 1000);
+}
+
+string toString(float value) {
+    char buffer[32];
+    sprintf(buffer, "%.2f", value);
+    return string(buffer);
+}
+
+void main() {
+    cpuChart = createChart("#cpuChart", "CPU Usage (%)", 60);
+    memoryChart = createChart("#memoryChart", "Memory Usage (MB)", 60);
+    networkChart = createChart("#networkChart", "Network Traffic (KB/s)", 60);
+    
+    startDataCollection();
+    
+    dom::Element refreshBtn = dom::get("#refreshButton");
+    refreshBtn.on("click", [] {
+        fetch("/api/metrics")
+            .then([](Response r) {
+                auto metrics = r.json();
+                updateCharts(metrics);
+            });
+    });
+    
+    dom::Element toggleBtn = dom::get("#toggleUpdates");
+    bool isPaused = false;
+    
+    toggleBtn.on("click", [&isPaused] {
+        isPaused = !isPaused;
+        if (isPaused) {
+            dataWorker.detach();
+            toggleBtn.text("Resume Updates");
+        } else {
+            startDataCollection();
+            toggleBtn.text("Pause Updates");
+        }
+    });
+    
+    dom::get("#status").text("Dashboard Active - Real-time monitoring");
+}
+
+float randomFloat(float min, float max) {
+    return min + (max - min) * (rand() / (float)RAND_MAX);
+}
+
+route GET "/api/metrics" -> Response {
+    return json({
+        "cpu": randomFloat(10.0, 90.0),
+        "memory": randomFloat(200.0, 800.0),
+        "network": randomFloat(50.0, 500.0),
+        "timestamp": getCurrentTime()
+    });
+}
+
+route GET "/api/history" -> Response {
+    return json({
+        "cpu": cpuChart->data,
+        "memory": memoryChart->data,
+        "network": networkChart->data,
+        "count": cpuChart->count
+    });
+}

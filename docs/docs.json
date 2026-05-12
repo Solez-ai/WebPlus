@@ -1,0 +1,171 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "willow",
+  "name": "Web+",
+  "colors": {
+    "primary": "#22d3ee",
+    "light": "#4ade80",
+    "dark": "#0f172a"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "index",
+              "quickstart",
+              "installation",
+              "development"
+            ]
+          },
+          {
+            "group": "Language Specification",
+            "pages": [
+              "language-spec/overview",
+              "language-spec/types",
+              "language-spec/memory",
+              "language-spec/functions",
+              "language-spec/structs",
+              "language-spec/web-primitives",
+              "language-spec/concurrency"
+            ]
+          },
+          {
+            "group": "Compiler & Transpiler",
+            "pages": [
+              "compiler/architecture",
+              "compiler/pipeline",
+              "compiler/optimization",
+              "compiler/errors"
+            ]
+          },
+          {
+            "group": "Tutorials",
+            "pages": [
+              "tutorials/hello-world",
+              "tutorials/server-api",
+              "tutorials/concurrency",
+              "tutorials/memory-management",
+              "tutorials/dom-manipulation"
+            ]
+          },
+          {
+            "group": "Runtime & Library",
+            "pages": [
+              "stdlib-reference",
+              "browser-runtime"
+            ]
+          },
+          {
+            "group": "AI & LLM",
+            "pages": [
+              "llm-guide"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Standard Library",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/stdlib",
+              "api-reference/memory",
+              "api-reference/containers"
+            ]
+          },
+          {
+            "group": "Web Primitives",
+            "pages": [
+              "api-reference/dom",
+              "api-reference/http",
+              "api-reference/fetch",
+              "api-reference/workers"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "api-reference/json",
+              "api-reference/timers",
+              "api-reference/streams"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "CLI & Tools",
+        "groups": [
+          {
+            "group": "Command Line",
+            "pages": [
+              "cli/overview",
+              "cli/commands",
+              "cli/build",
+              "cli/serve"
+            ]
+          },
+          {
+            "group": "VS Code Extension",
+            "pages": [
+              "vscode/extension",
+              "vscode/features",
+              "vscode/debugging"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/browser",
+              "deployment/server",
+              "deployment/edge"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/Solez-ai/webplus",
+          "icon": "github"
+        },
+        {
+          "anchor": "Examples",
+          "href": "https://github.com/Solez-ai/webplus/tree/main/examples",
+          "icon": "code"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/Solez-ai/webplus"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get Started",
+      "href": "/quickstart"
+    }
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/Solez_None",
+      "github": "https://github.com/Solez-ai"
+    }
+  }
+}

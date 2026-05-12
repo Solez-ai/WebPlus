@@ -1,0 +1,62 @@
+---
+title: "Developer Guide"
+description: "Contributing to the Web+ language and tooling"
+---
+
+# Developer Guide
+
+Welcome to the internal development guide for Web+. This page explains how to build the transpiler and CLI from source.
+
+## Repository Structure
+
+- `/transpiler`: The core logic that converts Web+ to C++.
+- `/cli`: The command-line tool interface.
+- `/stdlib`: The C++ and JS parts of the standard library.
+- `/vscode-extension`: Syntax highlighting and IDE tools.
+- `/docs`: This documentation site.
+
+## Development Setup
+
+1. **Clone the Repo**
+   ```bash
+   git clone https://github.com/Solez-ai/webplus.git
+   cd webplus
+   ```
+
+2. **Install Dependencies**
+   Web+ uses npm workspaces. Run at the root:
+   ```bash
+   npm install
+   ```
+
+3. **Build Components**
+   ```bash
+   npm run build
+   ```
+
+## Modifying the Transpiler
+
+The transpiler is written in TypeScript.
+- **Parser**: Located in `transpiler/src/parser.ts`.
+- **Codegen**: Located in `transpiler/src/codegen/`.
+
+After modifying, rebuild and link the CLI to test changes:
+```bash
+cd cli && npm link
+```
+
+## Running Tests
+
+We use a custom test runner to ensure compiler correctness:
+```bash
+npm run test
+```
+
+## Documentation
+
+To modify docs:
+1. Edit the `.mdx` files in the `docs/` folder.
+2. Run the preview server:
+   ```bash
+   npm run docs:dev
+   ```

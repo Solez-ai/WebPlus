@@ -1,0 +1,5418 @@
+
+# WEB+ (V0.1) COMPREHENSIVE TECHNICAL SPECIFICATION FOR LLMS
+# VERSION: 0.1.0-MVP
+# TARGET: AI Models, Agents, and Systems Programmers
+# DESCRIPTION: This document is a complete "mashup" of all Web+ documentation.
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+1.  IDENTITY & PHILOSOPHY
+2.  INSTALLATION & SETUP
+3.  LANGUAGE SPECIFICATION (CORE)
+4.  MEMORY MODEL (CRITICAL)
+5.  TYPE SYSTEM REFERENCE
+6.  WEB PRIMITIVES (DOM, FETCH, HTTP, WORKERS)
+7.  STANDARD LIBRARY (STDLIB)
+8.  CLI REFERENCE (COMMANDS & FLAGS)
+9.  COMPILER ARCHITECTURE
+10. DEPLOYMENT STRATEGIES
+11. TUTORIALS & WALKTHROUGHS
+12. LLM CODING GUIDELINES & BEST PRACTICES
+
+[... DETAILED CONTENT STARTING BELOW ...]
+
+
+================================================================================
+SECTION: INDEX.MDX
+================================================================================
+
+---
+title: "Web+ Documentation"
+description: "A C++-inspired systems-level language for the web that compiles to WebAssembly"
+---
+
+<img
+  className="block dark:hidden"
+  src="/logo/light.svg"
+  alt="Web+ Logo"
+  style={{ width: '200px', margin: '0 auto 2rem' }}
+/>
+<img
+  className="hidden dark:block"
+  src="/logo/dark.svg"
+  alt="Web+ Logo"
+  style={{ width: '200px', margin: '0 auto 2rem' }}
+/>
+
+# Welcome to Web+
+
+**Web+** (webplus) is a systems-level programming language designed specifically for the web. Inspired by C++, Web+ combines low-level performance and memory control with web-native primitives, compiling directly to WebAssembly for deterministic, high-performance execution.
+
+## Why Web+?
+
+Web+ is **not** a JavaScript replacement for beginners. It's a language for experienced systems and C++ programmers who need:
+
+- **C++-level performance** with manual memory management
+- **Web-native primitives** as first-class language features
+- **Deterministic execution** without garbage collection
+- **Cross-platform** support (browser, server, edge)
+- **Zero-cost abstractions** and predictable behavior
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Systems-Level Control" icon="microchip">
+    Manual memory management with stack, heap, and arena allocators. Full control over memory layout and execution.
+  </Card>
+  <Card title="Web-Native Primitives" icon="globe">
+    DOM manipulation, HTTP routing, fetch, and workers built directly into the language—not as libraries.
+  </Card>
+  <Card title="WebAssembly Target" icon="cube">
+    Compiles to optimized WebAssembly via LLVM, with minimal JavaScript glue only when needed.
+  </Card>
+  <Card title="Concurrency Built-In" icon="arrows-split-up-and-left">
+    First-class support for Web Workers and concurrent execution with deterministic memory behavior.
+  </Card>
+</CardGroup>
+
+## Quick Example
+
+```webplus
+// Client-side DOM manipulation
+void main() {
+    dom::Element button = dom::get("#submit");
+    button.on("click", [] {
+        dom::get("#status").text("Clicked!");
+    });
+}
+
+// Server-side HTTP routing
+route GET "/api/hello" -> Response {
+    return json({ "message": "Hello from Web+!" });
+}
+
+// Concurrent background task
+worker w = worker::spawn([] {
+    return fib(40);
+});
+int result = w.join();
+```
+
+## Target Audience
+
+Web+ is designed for:
+
+- **Systems programmers** who want the web as their target platform
+- **C++ developers** seeking WebAssembly-first development
+- **Performance-critical** applications (CAD, video/audio editors, games)
+- **Real-time** and **computationally intensive** web applications
+
+## Get Started
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Install Web+ and build your first application in minutes
+  </Card>
+  <Card title="Language Spec" icon="book" href="/language-spec/overview">
+    Complete language specification with syntax and semantics
+  </Card>
+  <Card title="Tutorials" icon="graduation-cap" href="/tutorials/hello-world">
+    Step-by-step guides for common use cases
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/stdlib">
+    Comprehensive standard library documentation
+  </Card>
+</CardGroup>
+
+## Architecture
+
+Web+ v0.1 uses a transpiler architecture:
+
+1. **Web+ Source** → Parser → AST
+2. **AST** → Code Generator → C++
+3. **C++** → Emscripten → WebAssembly
+4. **WebAssembly** + minimal JS glue → Browser/Server
+
+Future versions will compile directly to WebAssembly via LLVM, eliminating the C++ intermediate step.
+
+## Philosophy
+
+Web+ follows strict design principles:
+
+- **Performance first** — All abstractions are zero-cost or opt-in
+- **Explicit over implicit** — Memory and concurrency behavior is visible
+- **Web-native, not web-compatible** — Web APIs are language primitives
+- **No beginner optimizations** — Designed for experienced developers
+- **Determinism matters** — Predictable execution and memory behavior
+
+## Community & Support
+
+<Card title="GitHub Repository" icon="github" href="https://github.com/Solez-ai/webplus">
+  Star the project, report issues, and contribute to Web+
+</Card>
+
+---
+
+**Made by [Samin Yeasar](https://github.com/Solez-ai)**  
+Licensed under MIT
+
+
+================================================================================
+SECTION: INSTALLATION.MDX
+================================================================================
+
+---
+title: "Installation"
+description: "Detailed installation guide for Web+ and its dependencies"
+---
+
+# Installation
+
+This page provides detailed installation instructions for Web+ and all its dependencies.
+
+## System Requirements
+
+### Supported Platforms
+
+- **Windows** 10/11 (x64)
+- **macOS** 11 Big Sur or later
+- **Linux** (Ubuntu 20.04+, Fedora 35+, or equivalent)
+
+### Required Software
+
+- **Node.js** v18.0.0 or higher
+- **npm** v9.0.0 or higher
+- **Emscripten SDK** v3.1.0 or higher
+- **Git** (for cloning examples)
+
+## Step 1: Install Node.js
+
+### Windows
+
+Download from [nodejs.org](https://nodejs.org/) and run the installer.
+
+### macOS
+
+Using Homebrew:
+
+```bash
+brew install node
+```
+
+### Linux
+
+```bash
+# Ubuntu/Debian
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Fedora
+sudo dnf install nodejs
+```
+
+Verify installation:
+
+```bash
+node --version
+npm --version
+```
+
+## Step 2: Install Emscripten SDK
+
+Emscripten is required to compile C++ to WebAssembly.
+
+### All Platforms
+
+```bash
+# Clone the Emscripten repository
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+
+# Download and install the latest SDK tools
+./emsdk install latest
+
+# Activate the SDK for current user
+./emsdk activate latest
+
+# Set up environment variables (required for every session)
+source ./emsdk_env.sh
+```
+
+### Permanent PATH Setup
+
+#### Windows (PowerShell)
+
+Add to your PowerShell profile:
+
+```powershell
+# Edit profile
+notepad $PROFILE
+
+# Add this line
+& "C:\path\to\emsdk\emsdk_env.ps1"
+```
+
+#### macOS/Linux (Bash/Zsh)
+
+Add to `~/.bashrc`, `~/.zshrc`, or `~/.profile`:
+
+```bash
+# Add to shell config
+echo 'source "/path/to/emsdk/emsdk_env.sh"' >> ~/.bashrc
+
+# Reload shell
+source ~/.bashrc
+```
+
+### Verify Emscripten
+
+```bash
+emcc --version
+```
+
+Expected output:
+
+```
+emcc (Emscripten gcc/clang-like replacement) 3.1.50 (...)
+```
+
+## Step 3: Install Web+
+
+### From Source (Recommended for v0.1)
+
+```bash
+# Clone the repository
+git clone https://github.com/Solez-ai/webplus.git
+cd webplus
+
+# Install dependencies for all workspaces
+npm install
+
+# Build all packages
+npm run build
+
+# Link CLI globally
+cd cli
+npm link
+
+# Verify installation
+webplus --version
+```
+
+### Expected Output
+
+```
+Web+ v0.1.0
+A C++-inspired systems language for the web
+```
+
+## Step 4: Verify Installation
+
+Create a test file `test.webplus`:
+
+```webplus
+void main() {
+    dom::get("#app").text("Web+ is working!");
+}
+```
+
+Build it:
+
+```bash
+webplus build test.webplus -o test-build
+```
+
+If successful, you'll see:
+
+```
+✔ Build successful! Output: /path/to/test-build
+```
+
+## Optional: Install VS Code Extension
+
+The Web+ VS Code extension provides syntax highlighting, IntelliSense, and debugging.
+
+### Install from Source
+
+```bash
+cd webplus/vscode-extension
+npm install
+npm run build
+
+# Package extension
+vsce package
+
+# Install in VS Code
+code --install-extension webplus-0.1.0.vsix
+```
+
+### Features
+
+- Syntax highlighting for `.webplus` files
+- IntelliSense for Web+ keywords and standard library
+- Inline error diagnostics
+- Code snippets
+
+## Troubleshooting
+
+### Emscripten Installation Issues
+
+**Error: `emcc: command not found`**
+
+Solution: Ensure `emsdk_env.sh` is sourced in your current shell:
+
+```bash
+source /path/to/emsdk/emsdk_env.sh
+```
+
+**Error: `EMSDK environment variables not set`**
+
+Solution: Re-activate Emscripten:
+
+```bash
+cd /path/to/emsdk
+./emsdk activate latest
+source ./emsdk_env.sh
+```
+
+### Web+ Build Issues
+
+**Error: `Cannot find module '@webplus/transpiler'`**
+
+Solution: Ensure dependencies are installed:
+
+```bash
+cd webplus
+npm install
+npm run build
+```
+
+**Error: `Permission denied` during `npm link`**
+
+Solution: Use sudo (Linux/macOS) or run as Administrator (Windows):
+
+```bash
+sudo npm link
+```
+
+### Browser Compatibility
+
+Web+ requires WebAssembly support. Supported browsers:
+
+- **Chrome** 57+
+- **Firefox** 52+
+- **Safari** 11+
+- **Edge** 16+
+
+## Updating Web+
+
+To update to the latest version:
+
+```bash
+cd webplus
+git pull origin main
+npm install
+npm run build
+```
+
+## Uninstalling
+
+To completely remove Web+:
+
+```bash
+# Unlink CLI
+npm unlink -g @webplus/cli
+
+# Remove directory
+rm -rf /path/to/webplus
+```
+
+## Next Steps
+
+Now that Web+ is installed:
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Build your first Web+ application
+  </Card>
+  <Card title="Tutorials" icon="graduation-cap" href="/tutorials/hello-world">
+    Follow step-by-step guides
+  </Card>
+</CardGroup>
+
+
+================================================================================
+SECTION: QUICKSTART.MDX
+================================================================================
+
+---
+title: "Quick Start"
+description: "Get started with Web+ in minutes"
+---
+
+# Quick Start
+
+This guide will help you install Web+ and build your first application.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- **Node.js** v18 or higher
+- **Emscripten SDK** (for WebAssembly compilation)
+- A code editor (VS Code recommended)
+
+## Install Emscripten
+
+Web+ v0.1 uses Emscripten to compile C++ to WebAssembly. Install it:
+
+```bash
+# Clone Emscripten SDK
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+
+# Install and activate latest
+./emsdk install latest
+./emsdk activate latest
+
+# Add to PATH (add to ~/.bashrc or ~/.zshrc)
+source ./emsdk_env.sh
+```
+
+Verify installation:
+
+```bash
+emcc --version
+```
+
+## Install Web+
+
+Install Web+ globally via npm:
+
+```bash
+cd webplus
+npm install
+npm run build
+
+# Link CLI globally
+cd cli
+npm link
+```
+
+Verify installation:
+
+```bash
+webplus --version
+```
+
+You should see: `web+ v0.1.0`
+
+## Your First Program
+
+Create a new file `hello.webplus`:
+
+```webplus
+void main() {
+    dom::get("#app").text("Hello, Web+!");
+}
+```
+
+## Build
+
+Compile your Web+ code to WebAssembly:
+
+```bash
+webplus build hello.webplus -o build
+```
+
+This will:
+1. Transpile Web+ → C++
+2. Compile C++ → WebAssembly with Emscripten
+3. Generate an HTML runner
+
+## Run
+
+Open `build/index.html` in your browser, or use the dev server:
+
+```bash
+webplus serve . --port 3000
+```
+
+Navigate to `http://localhost:3000` to see your app running!
+
+## What Just Happened?
+
+1. **Transpilation**: Web+ source was parsed and converted to Emscripten-compatible C++
+2. **Compilation**: C++ was compiled to optimized WebAssembly `.wasm` file
+3. **Execution**: Your WebAssembly module runs in the browser with minimal JS glue
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Language Overview" icon="book" href="/language-spec/overview">
+    Learn Web+ syntax, types, and features
+  </Card>
+  <Card title="Tutorials" icon="graduation-cap" href="/tutorials/hello-world">
+    Follow step-by-step tutorials
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/stdlib">
+    Explore the standard library
+  </Card>
+  <Card title="Examples" icon="folder-open" href="https://github.com/Solez-ai/webplus/tree/main/examples">
+    Browse example projects
+  </Card>
+</CardGroup>
+
+## Development Workflow
+
+For active development with hot-reload:
+
+```bash
+# Start dev server with auto-rebuild
+webplus serve src --port 3000
+
+# Edit your .webplus files
+# Changes automatically trigger rebuild
+```
+
+## Project Structure
+
+A typical Web+ project:
+
+```
+my-project/
+├── src/
+│   ├── main.webplus      # Entry point
+│   └── utils.webplus     # Modules
+├── build/                # Build output
+│   ├── output.wasm
+│   ├── output.js
+│   └── index.html
+└── package.json
+```
+
+## Common Commands
+
+```bash
+# Build project
+webplus build src -o build
+
+# Serve with hot-reload
+webplus serve src --port 3000
+
+# Run compiled output
+webplus run build --browser
+
+# Format code
+webplus format src/**/*.webplus
+
+# Lint code
+webplus lint src/**/*.webplus
+```
+
+## Troubleshooting
+
+### Emscripten not found
+
+Ensure Emscripten is in your PATH:
+
+```bash
+which emcc
+```
+
+If not found, run:
+
+```bash
+source /path/to/emsdk/emsdk_env.sh
+```
+
+### Build fails
+
+Check that:
+- All `.webplus` files have valid syntax
+- Emscripten is properly installed
+- You have write permissions to output directory
+
+### Module fails to load
+
+Check browser console for errors. Ensure:
+- WebAssembly is enabled in your browser
+- Files are served over HTTP (not file://)
+- No CORS errors (use `webplus serve`)
+
+## Getting Help
+
+- **GitHub Issues**: [Report bugs](https://github.com/Solez-ai/webplus/issues)
+- **Documentation**: Browse this site for comprehensive guides
+- **Examples**: Learn from [example projects](https://github.com/Solez-ai/webplus/tree/main/examples)
+
+---
+
+**Ready to dive deeper?** Check out the [Language Specification](/language-spec/overview) to learn all about Web+'s features.
+
+
+================================================================================
+SECTION: DEVELOPMENT.MDX
+================================================================================
+
+---
+title: "Developer Guide"
+description: "Contributing to the Web+ language and tooling"
+---
+
+# Developer Guide
+
+Welcome to the internal development guide for Web+. This page explains how to build the transpiler and CLI from source.
+
+## Repository Structure
+
+- `/transpiler`: The core logic that converts Web+ to C++.
+- `/cli`: The command-line tool interface.
+- `/stdlib`: The C++ and JS parts of the standard library.
+- `/vscode-extension`: Syntax highlighting and IDE tools.
+- `/docs`: This documentation site.
+
+## Development Setup
+
+1. **Clone the Repo**
+   ```bash
+   git clone https://github.com/Solez-ai/webplus.git
+   cd webplus
+   ```
+
+2. **Install Dependencies**
+   Web+ uses npm workspaces. Run at the root:
+   ```bash
+   npm install
+   ```
+
+3. **Build Components**
+   ```bash
+   npm run build
+   ```
+
+## Modifying the Transpiler
+
+The transpiler is written in TypeScript.
+- **Parser**: Located in `transpiler/src/parser.ts`.
+- **Codegen**: Located in `transpiler/src/codegen/`.
+
+After modifying, rebuild and link the CLI to test changes:
+```bash
+cd cli && npm link
+```
+
+## Running Tests
+
+We use a custom test runner to ensure compiler correctness:
+```bash
+npm run test
+```
+
+## Documentation
+
+To modify docs:
+1. Edit the `.mdx` files in the `docs/` folder.
+2. Run the preview server:
+   ```bash
+   npm run docs:dev
+   ```
+
+
+================================================================================
+SECTION: LLM-GUIDE.MDX
+================================================================================
+
+---
+title: "LLM Specification"
+description: "High-density technical guide for AI models and developers"
+---
+
+# Web+ LLM Specification
+
+This document is a high-density, technical overview of Web+ designed specifically for **Large Language Models (LLMs)** and **AI Agents**. If you are using an AI coding assistant (like Claude, GPT-4, or Antigravity), you can feed it this document or the raw text file to help it understand Web+ syntax, memory management, and primitives.
+
+<Card title="Download for AI" icon="file-arrow-down" href="/llm.txt">
+  Download the raw `llm.txt` to feed into your AI model.
+</Card>
+
+---
+
+## Technical Identity
+Web+ is a systems-level language compiled to WebAssembly. It uses C++ syntax with built-in web primitives and manual memory management.
+
+## Key Primitives
+
+### DOM Manipulation
+```cpp
+dom::Element app = dom::get("#app");
+app.text("Hello World");
+app.on("click", []() { /* handle click */ });
+```
+
+### Async & Fetch
+```cpp
+webplus::fetch("/api/data").then([](Response r) {
+    webplus::print("Status: ", r.status());
+});
+```
+
+### Background Workers
+```cpp
+worker w = worker::spawn([] { 
+    return perform_heavy_task(); 
+});
+int res = w.join();
+```
+
+---
+
+## Memory Model Summary
+
+- **No Garbage Collection**: All heap memory must be manually freed.
+- **Stack**: Automatic local variables.
+- **Heap**: `alloc<T>(n)` and `free_ptr(p)`.
+- **Arena**: Bulk allocation for temporary tasks.
+
+---
+
+## Full Specification (MDX)
+
+Below is the embedded version of the technical specification.
+
+<Accordion title="View Full AI Specification">
+```markdown
+## Web+ Core Rules for AI
+1. Standard library resides in the `webplus` namespace.
+2. DOM utilities reside in `webplus::dom` or `dom::`.
+3. The `route` keyword is for server-side endpoint definition.
+4. Memory safety depends on `free_ptr` being called for every `alloc`.
+5. Use `worker::spawn` for multi-threading.
+6. Target platforms: Browser (WASM/JS), Server (WASI), Edge.
+```
+</Accordion>
+
+## How to use with an AI
+1. Copy the contents of the `llm.txt` or this page.
+2. Paste it into your prompt with the instruction: 
+   *"Use this Web+ specification to help me write a .webplus application that..."*
+3. The AI will now understand the unique syntax and memory rules of Web+.
+
+
+================================================================================
+SECTION: STDLIB-REFERENCE.MDX
+================================================================================
+
+---
+title: 'Standard Library Reference'
+description: 'Complete reference for the Web+ minimal standard library v0.1'
+---
+
+# Standard Library Reference
+
+The Web+ standard library provides essential runtime features for both browser and server environments. This is the minimal v0.1 implementation focusing on core functionality.
+
+## Philosophy
+
+The Web+ stdlib follows these principles:
+
+- **Zero-cost abstractions** - No overhead from library usage
+- **Manual memory management** - Explicit and predictable
+- **Web-native** - First-class support for DOM and browser APIs
+- **Cross-platform** - Works in browser (via WASM) and server (via WASI)
+- **Minimal footprint** - Only include what you use
+
+## Memory Primitives
+
+### Basic Types
+
+```cpp
+webplus::int32      // 32-bit signed integer
+webplus::float32    // 32-bit floating point
+webplus::float64    // 64-bit floating point (double)
+webplus::bool_t     // Boolean type
+webplus::char_t     // Single character
+```
+
+### String
+
+Manual memory-managed UTF-8 string class.
+
+#### Constructor
+
+```cpp
+webplus::String str();              // Empty string
+webplus::String str("Hello");       // From C-string
+webplus::String str2(str);          // Copy constructor
+```
+
+#### Methods
+
+```cpp
+const char* c_str() const;          // Get C-string pointer
+size_t length() const;              // Get string length
+bool empty() const;                 // Check if empty
+void append(const char* str);       // Append string
+void clear();                       // Clear and free memory
+```
+
+#### Example
+
+```cpp
+webplus::String message = "Hello";
+message.append(", World!");
+webplus::print(message.c_str());    // Output: Hello, World!
+message.clear();                    // Free memory
+```
+
+### Memory Allocation
+
+```cpp
+template<typename T>
+T* alloc(size_t count);             // Allocate count elements
+
+template<typename T>
+void free_ptr(T* ptr);              // Free allocated memory
+```
+
+#### Example
+
+```cpp
+int* numbers = webplus::alloc<int>(10);
+numbers[0] = 42;
+webplus::free_ptr(numbers);
+```
+
+### Stack Arrays
+
+Fixed-size arrays allocated on the stack (or managed heap).
+
+```cpp
+template<typename T>
+class StackArray<T> {
+    explicit StackArray(size_t size);
+    T& operator[](size_t index);
+    size_t size() const;
+    T* data();
+};
+```
+
+#### Example
+
+```cpp
+webplus::StackArray<int> arr(5);
+arr[0] = 10;
+arr[1] = 20;
+```
+
+### Arena Allocator
+
+Fast bump allocator for temporary allocations.
+
+```cpp
+template<typename T>
+class Arena<T> {
+    explicit Arena(size_t capacity);
+    T* allocate(size_t count);
+    void reset();
+    size_t available() const;
+};
+```
+
+#### Example
+
+```cpp
+webplus::Arena<int> arena(1000);
+int* temp1 = arena.allocate(5);
+int* temp2 = arena.allocate(10);
+arena.reset();  // Reset, invalidates all pointers
+```
+
+## Containers
+
+### Vector
+
+Dynamic array with automatic growth.
+
+```cpp
+template<typename T>
+class Vector<T> {
+    Vector();
+    void push(const T& value);
+    T pop();
+    T& at(size_t index);
+    T& operator[](size_t index);
+    size_t size() const;
+    size_t capacity() const;
+    bool empty() const;
+    void clear();
+    void reserve(size_t new_capacity);
+    T* data();
+};
+```
+
+#### Example
+
+```cpp
+webplus::Vector<int> numbers;
+numbers.push(10);
+numbers.push(20);
+numbers.push(30);
+
+for (size_t i = 0; i < numbers.size(); i++) {
+    webplus::print(numbers[i]);
+}
+
+int last = numbers.pop();  // 30
+numbers.clear();
+```
+
+## Logging
+
+### print()
+
+Output to console with automatic type conversion.
+
+```cpp
+template<typename... Args>
+void print(const Args&... args);
+```
+
+#### Example
+
+```cpp
+webplus::print("Count:", 42);
+webplus::print("Pi:", 3.14159, "is irrational");
+```
+
+### warn()
+
+Warning messages prefixed with `[WARN]`.
+
+```cpp
+template<typename... Args>
+void warn(const Args&... args);
+```
+
+#### Example
+
+```cpp
+webplus::warn("Potential memory leak detected");
+```
+
+### error()
+
+Error messages prefixed with `[ERROR]`.
+
+```cpp
+template<typename... Args>
+void error(const Args&... args);
+```
+
+#### Example
+
+```cpp
+webplus::error("Failed to allocate memory");
+```
+
+### log() (Browser Only)
+
+Direct console.log integration for browser environments.
+
+```cpp
+template<typename... Args>
+void log(const Args&... args);
+```
+
+## DOM Access (Browser Only)
+
+### Element
+
+Represents a DOM element with ID-based tracking.
+
+```cpp
+class Element {
+    bool is_valid() const;
+    void text(const String& value);
+    String text() const;
+    void html(const String& value);
+    void set_attribute(const String& name, const String& value);
+    void add_class(const String& className);
+    void remove_class(const String& className);
+    void append(const Element& child);
+    void remove();
+};
+```
+
+### Functions
+
+```cpp
+Element get(const String& selector);
+Element createElement(const String& tagName);
+Element getElementById(const String& id);
+```
+
+#### Example
+
+```cpp
+using namespace webplus::dom;
+
+Element app = get("#app");
+if (app.is_valid()) {
+    app.html("<h1>Hello, Web+!</h1>");
+    
+    Element button = createElement("button");
+    button.text("Click me");
+    button.add_class("btn-primary");
+    button.set_attribute("id", "myButton");
+    
+    app.append(button);
+}
+```
+
+## HTTP Fetch (Browser Only)
+
+### Response
+
+Represents an HTTP response.
+
+```cpp
+class Response {
+    const String& body() const;
+    int status() const;
+    bool ok() const;
+    String json_string() const;
+};
+```
+
+### Promise
+
+Promise-like interface for async operations.
+
+```cpp
+class Promise {
+    template<typename F>
+    void then(F callback);
+};
+```
+
+### fetch()
+
+Make HTTP requests.
+
+```cpp
+Promise fetch(const String& url);
+Promise fetch(const String& url, const String& method, const String& body);
+```
+
+#### Example
+
+```cpp
+webplus::String url = "https://api.example.com/data";
+webplus::Promise response = webplus::fetch(url);
+
+// Note: Full callback support coming in v0.2
+// For now, demonstrates the API structure
+```
+
+## Runtime Initialization
+
+### Functions
+
+```cpp
+namespace webplus {
+    void stdlib_init();      // Initialize standard library
+    void stdlib_cleanup();   // Cleanup and free resources
+}
+
+namespace webplus::wasm {
+    void init();             // Initialize WASM runtime
+    void cleanup();          // Cleanup WASM runtime
+}
+```
+
+#### Example
+
+```cpp
+void main() {
+    webplus::stdlib_init();
+    
+    // Your application code here
+    
+    webplus::stdlib_cleanup();
+}
+```
+
+## Platform Detection
+
+The stdlib automatically detects the target platform:
+
+- `__EMSCRIPTEN__` - Browser/WASM build
+- Otherwise - Native/server build
+
+Platform-specific features are conditionally compiled.
+
+## Performance Characteristics
+
+### Memory
+
+- **String**: O(1) access, O(n) append with reallocation
+- **Vector**: O(1) push (amortized), O(1) access, O(n) reallocation
+- **Arena**: O(1) allocation, O(1) reset
+
+### DOM Operations
+
+- **get/createElement**: O(1) reference tracking
+- **text/html**: O(1) via Emscripten JS interop
+- **append**: O(1) DOM operation
+
+### Network
+
+- **fetch**: Async, non-blocking in browser
+
+## Limitations (v0.1)
+
+The minimal stdlib has these known limitations:
+
+- ❌ No async callback support (callbacks require C++ function pointers with WASM trampolines)
+- ❌ No complete DOM API (only essential operations)
+- ❌ No Map/Set containers
+- ❌ No file I/O
+- ❌ No streams
+- ❌ No SQLite bindings
+
+These will be added in v0.2+.
+
+## Memory Safety
+
+The stdlib provides manual memory management. You are responsible for:
+
+1. Freeing allocated memory with `free_ptr()`
+2. Not accessing freed memory
+3. Not exceeding array bounds
+4. Proper lifetime management of objects
+
+Future versions may include optional bounds checking and borrow hints.
+
+## Threading Model
+
+- **Browser**: Single-threaded main execution
+- **Workers**: Future support via `worker::spawn()`
+- **Server**: WASI thread support (future)
+
+## Include Headers
+
+```cpp
+#include "webplus.hpp"              // All stdlib features
+
+// Or individual headers:
+#include "runtime/memory.hpp"       // Memory primitives
+#include "runtime/vector.hpp"       // Vector container
+#include "runtime/print.hpp"        // Logging functions
+#include "browser/dom.hpp"          // DOM access (browser only)
+#include "browser/fetch.hpp"        // HTTP fetch (browser only)
+```
+
+## Link Flags
+
+When building with Emscripten:
+
+```bash
+emcc main.cpp -o main.js -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 \
+  -I/path/to/stdlib -lembind --bind
+```
+
+## Credits
+
+**Built by:** Samin Yeasar ([@Solez-ai](https://github.com/Solez-ai))  
+**License:** MIT  
+**Version:** 0.1.0
+
+
+================================================================================
+SECTION: BROWSER-RUNTIME.MDX
+================================================================================
+
+---
+title: 'Browser Runtime'
+description: 'Browser runtime architecture and usage for Web+ applications'
+---
+
+# Browser Runtime
+
+The Web+ browser runtime enables Web+ applications to run in modern web browsers via WebAssembly. It provides the bridge between your Web+ code and browser APIs.
+
+## Architecture
+
+```
+┌──────────────────────────────────────┐
+│   Web+ Application (.webplus)       │
+└────────────┬─────────────────────────┘
+             │ Transpile
+┌────────────▼─────────────────────────┐
+│   C++ Code (with stdlib headers)    │
+└────────────┬─────────────────────────┘
+             │ Emscripten
+┌────────────▼─────────────────────────┐
+│   WebAssembly Module (.wasm + .js)  │
+└────────────┬─────────────────────────┘
+             │
+┌────────────▼─────────────────────────┐
+│   Browser Runtime (runtime.js)      │
+│  - Element tracking                 │
+│  - Promise management               │
+│  - Worker lifecycle                 │
+│  - Callback registration            │
+└────────────┬─────────────────────────┘
+             │
+┌────────────▼─────────────────────────┐
+│   Browser APIs (DOM, Fetch, etc.)   │
+└──────────────────────────────────────┘
+```
+
+## Components
+
+### 1. Runtime JavaScript (runtime.js)
+
+Provides the minimal JavaScript glue layer for browser API access.
+
+**Features:**
+- Element tracking with ID-based references
+- Promise management for async operations
+- Worker lifecycle management
+- Callback registration system
+- Error logging and debugging
+
+**Global Objects:**
+```javascript
+window.__webplus               // Runtime namespace
+window.__webplus_elements      // DOM element registry
+window.__webplus_promises      // Promise registry
+window.__webplus_workers       // Worker registry
+window.__webplus_callbacks     // Callback registry
+```
+
+### 2. WASM Runtime (runtime.cpp)
+
+C++ runtime initialization and lifecycle management.
+
+**Functions:**
+```cpp
+void runtime_init();           // Initialize runtime
+void runtime_cleanup();        // Cleanup resources
+const char* runtime_version(); // Get version string
+```
+
+**Runtime Class:**
+```cpp
+class Runtime {
+    void initialize();
+    void cleanup();
+    bool is_initialized() const;
+    static Runtime& instance();
+};
+```
+
+### 3. HTML Template (index.html)
+
+Production-ready HTML template with:
+- Loading indicator
+- Error handling
+- Automatic WASM module initialization
+- Modern dark theme styling
+- Cleanup on page unload
+
+## Building for Browser
+
+### Using CLI
+
+```bash
+webplus build main.webplus -o build/
+```
+
+This generates:
+- `build/main.wasm` - WebAssembly binary
+- `build/main.js` - Emscripten JavaScript glue
+
+### Manual Build with Emscripten
+
+```bash
+# Transpile Web+ to C++
+webplus transpile main.webplus -o main.cpp
+
+# Compile with Emscripten
+emcc main.cpp \
+  -o build/main.js \
+  -s WASM=1 \
+  -s ALLOW_MEMORY_GROWTH=1 \
+  -s EXPORTED_FUNCTIONS='["_main","_runtime_init","_runtime_cleanup"]' \
+  -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
+  -I../stdlib \
+  -lembind \
+  --bind
+```
+
+## Deployment
+
+### File Structure
+
+```
+build/
+├── index.html         # HTML template
+├── runtime.js         # Browser runtime
+├── main.wasm          # Your compiled WASM module
+└── main.js            # Emscripten glue
+```
+
+### Copying Runtime Files
+
+```bash
+cp stdlib/browser/index.html build/
+cp stdlib/browser/runtime.js build/
+```
+
+### Serving Locally
+
+```bash
+cd build
+python -m http.server 8000
+# Open http://localhost:8000
+```
+
+### Production Deployment
+
+Deploy to any static hosting:
+
+**Vercel:**
+```bash
+vercel build/
+```
+
+**Netlify:**
+```bash
+netlify deploy --dir=build --prod
+```
+
+**GitHub Pages:**
+```bash
+git subtree push --prefix build origin gh-pages
+```
+
+## Runtime Lifecycle
+
+### Initialization Sequence
+
+1. Browser loads `index.html`
+2. `runtime.js` initializes global registries
+3. `main.js` (Emscripten glue) loads
+4. `main.wasm` module instantiates
+5. `Module.onRuntimeInitialized` fires
+6. `runtime_init()` is called
+7. Your `main()` function executes
+
+### Cleanup Sequence
+
+1. Page `beforeunload` event fires
+2. `runtime_cleanup()` is called
+3. Active workers are terminated
+4. Registries are cleared
+5. WASM module deallocates
+
+## DOM Integration
+
+### Element Tracking
+
+Elements are tracked using integer IDs to avoid pointer issues between WASM and JavaScript.
+
+```cpp
+// C++ side
+webplus::dom::Element button = webplus::dom::get("#myButton");
+
+// JavaScript side (automatic)
+window.__webplus_elements[0] = document.querySelector("#myButton");
+```
+
+### Memory Model
+
+- **WASM Memory**: Linear memory for your application
+- **JS Heap**: Separate heap for DOM objects
+- **Bridge**: Emscripten's `EM_ASM` macros for JS interop
+
+### String Marshalling
+
+Strings are marshalled between WASM and JS:
+
+```cpp
+// C++ → JS
+EM_ASM({
+    console.log(UTF8ToString($0));
+}, myString.c_str());
+
+// JS → C++
+char* jsString = (char*)EM_ASM_INT({
+    const str = "Hello from JS";
+    const len = lengthBytesUTF8(str) + 1;
+    const ptr = _malloc(len);
+    stringToUTF8(str, ptr, len);
+    return ptr;
+});
+```
+
+## Async Operations
+
+### Promise Handling
+
+Promises are tracked and resolved asynchronously:
+
+```cpp
+// C++ initiates fetch
+webplus::Promise p = webplus::fetch("/api/data");
+
+// JavaScript handles async work
+window.__webplus_promises[0] = fetch("/api/data")
+    .then(r => r.text())
+    .then(text => {
+        // Marshal back to WASM
+    });
+```
+
+### Future Support (v0.2)
+
+Full callback support requires:
+- Function pointer trampolines
+- WASM function table exports
+- Callback lifetime management
+
+## Worker Support
+
+### Current Status (v0.1)
+
+Worker infrastructure is in place but callbacks are limited.
+
+### Future Support (v0.2)
+
+```cpp
+worker w = worker::spawn([] {
+    return heavy_computation();
+});
+
+int result = w.join();
+```
+
+## Performance Optimization
+
+### Binary Size
+
+Minimize WASM size:
+```bash
+emcc ... -Os -s AGGRESSIVE_VARIABLE_ELIMINATION=1
+```
+
+### Loading Speed
+
+Use streaming compilation:
+```javascript
+const { instance } = await WebAssembly.instantiateStreaming(
+    fetch('main.wasm'),
+    importObject
+);
+```
+
+### Memory Growth
+
+Configure memory settings:
+```bash
+emcc ... -s INITIAL_MEMORY=16MB -s ALLOW_MEMORY_GROWTH=1
+```
+
+## Debugging
+
+### Browser DevTools
+
+1. Open DevTools (F12)
+2. Check Console for Web+ logs
+3. Use Sources tab for WASM debugging
+4. Monitor Network for fetch calls
+
+### Console Output
+
+```cpp
+webplus::print("Debug:", value);        // Console.log
+webplus::warn("Warning:", message);     // Console.warn
+webplus::error("Error:", error);        // Console.error
+```
+
+### Error Messages
+
+The runtime provides clear error messages:
+```
+[Web+ Error] WebAssembly module aborted: ...
+[Web+ Warning] Element not found: #myButton
+[Web+ Info] Runtime initialized v0.1.0
+```
+
+## Security
+
+### Sandboxing
+
+- WASM runs in isolated memory space
+- No direct access to OS or file system
+- Limited to browser capabilities
+- All external calls go through runtime bridge
+
+### Content Security Policy
+
+Compatible with strict CSP:
+```html
+<meta http-equiv="Content-Security-Policy" 
+      content="default-src 'self'; 
+               script-src 'self' 'wasm-unsafe-eval';">
+```
+
+### CORS
+
+Fetch requests respect CORS policies:
+```cpp
+// This request must pass CORS checks
+webplus::fetch("https://api.example.com/data");
+```
+
+## Browser Compatibility
+
+### Supported Browsers
+
+- ✅ Chrome 57+
+- ✅ Firefox 52+
+- ✅ Safari 11+
+- ✅ Edge 16+
+
+### Requirements
+
+- WebAssembly support
+- ES6 JavaScript
+- Fetch API
+- Promise support
+
+### Polyfills
+
+For older browsers, include:
+```html
+<script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.6.2/dist/fetch.umd.js"></script>
+```
+
+## Limitations (v0.1)
+
+Current browser runtime limitations:
+
+- ❌ No WebWorker creation from Web+ code
+- ❌ Limited callback support
+- ❌ No WebGL/Canvas2D direct access
+- ❌ No WebSocket support
+- ❌ No IndexedDB bindings
+- ❌ No ServiceWorker integration
+
+These will be addressed in future versions.
+
+## Example Application
+
+### main.webplus
+
+```cpp
+void main() {
+    webplus::stdlib_init();
+    
+    webplus::dom::Element app = webplus::dom::get("#app");
+    
+    if (app.is_valid()) {
+        webplus::dom::Element title = webplus::dom::createElement("h1");
+        title.text("Web+ Browser Runtime Demo");
+        app.append(title);
+        
+        webplus::dom::Element status = webplus::dom::createElement("p");
+        status.text("Runtime initialized successfully!");
+        status.add_class("success");
+        app.append(status);
+    }
+    
+    webplus::print("Application running in browser!");
+    
+    webplus::stdlib_cleanup();
+}
+```
+
+### Build & Run
+
+```bash
+webplus build main.webplus -o build/
+cp stdlib/browser/* build/
+cd build && python -m http.server
+```
+
+## Troubleshooting
+
+### WASM Module Fails to Load
+
+Check:
+- File paths in index.html
+- CORS headers if serving from different origin
+- Browser console for error messages
+
+### DOM Elements Not Found
+
+Ensure:
+- Elements exist in HTML before WASM runs
+- Selectors are correct
+- `DOMContentLoaded` has fired
+
+### Memory Issues
+
+Try:
+- Increase `INITIAL_MEMORY`
+- Enable `ALLOW_MEMORY_GROWTH`
+- Check for memory leaks (unreleased allocations)
+
+## Credits
+
+**Built by:** Samin Yeasar ([@Solez-ai](https://github.com/Solez-ai))  
+**License:** MIT  
+**Version:** 0.1.0
+
+
+================================================================================
+SECTION: LANGUAGE-SPEC/OVERVIEW.MDX
+================================================================================
+
+---
+title: "Language Overview"
+description: "Complete specification of the Web+ programming language"
+---
+
+# Web+ Language Specification v0.1
+
+Web+ is a C++-inspired, systems-level language designed specifically for the web. It compiles to WebAssembly and provides low-level control with web-native primitives.
+
+## Design Philosophy
+
+Web+ follows these core principles:
+
+1. **Performance First** - All abstractions are zero-cost or explicitly opt-in
+2. **Explicit Over Implicit** - Memory, concurrency, and async behavior is visible
+3. **Web-Native** - DOM, HTTP, workers are language primitives, not libraries
+4. **No Beginner Optimizations** - Designed for experienced systems programmers
+5. **Determinism Matters** - Predictable execution and memory behavior
+
+## Syntax Overview
+
+Web+ uses C++-style syntax with web-specific extensions:
+
+```webplus
+// Comments use C++ style
+// This is a single-line comment
+
+/* 
+   This is a multi-line comment
+*/
+
+// Primitive types
+int x = 42;
+float pi = 3.14;
+double precise = 3.141592653589793;
+bool isReady = true;
+char c = 'A';
+string name = "Web+";
+
+// Pointers and references
+int* ptr = alloc<int>(1);
+int& ref = *ptr;
+
+// Structs
+struct Point {
+    float x;
+    float y;
+};
+
+// Functions
+int add(int a, int b) {
+    return a + b;
+}
+
+// Web primitives
+dom::Element elem = dom::get("#app");
+worker w = worker::spawn([] { return fib(40); });
+
+// HTTP routes (server-side)
+route GET "/api/data" -> Response {
+    return json({ "status": "ok" });
+}
+```
+
+## Primitive Types
+
+### Integer Types
+
+```webplus
+int value = 42;        // 32-bit signed integer
+```
+
+**Range:** -2,147,483,648 to 2,147,483,647  
+**Size:** 4 bytes  
+**Alignment:** 4 bytes
+
+### Floating Point Types
+
+```webplus
+float f = 3.14;        // 32-bit floating point
+double d = 3.14159;    // 64-bit floating point
+```
+
+**float:**
+- Size: 4 bytes
+- Precision: ~7 decimal digits
+- IEEE 754 single precision
+
+**double:**
+- Size: 8 bytes
+- Precision: ~15 decimal digits
+- IEEE 754 double precision
+
+### Boolean Type
+
+```webplus
+bool isValid = true;
+bool isClosed = false;
+```
+
+**Size:** 1 byte  
+**Values:** `true` or `false`
+
+### Character Type
+
+```webplus
+char letter = 'A';
+char digit = '7';
+```
+
+**Size:** 1 byte  
+**Encoding:** ASCII
+
+### String Type
+
+```webplus
+string message = "Hello, Web+!";
+string empty = "";
+```
+
+**Implementation:** `std::string` in generated C++  
+**Encoding:** UTF-8  
+**Methods:** See [String API Reference](/api-reference/containers#string)
+
+### Void Type
+
+```webplus
+void noReturn() {
+    // Function returns nothing
+}
+```
+
+## Memory Model
+
+Web+ provides explicit memory control without garbage collection.
+
+### Stack Allocation
+
+```webplus
+int localVar = 42;           // Stack allocated
+Point p = { 10.0, 20.0 };    // Stack allocated struct
+```
+
+Stack memory:
+- **Automatically managed** within function scope
+- **Fast allocation** and deallocation
+- **Limited size** (typically few MB)
+- **Lifetime:** Until function returns
+
+### Heap Allocation
+
+```webplus
+int* heapInt = alloc<int>(1);
+heapInt[0] = 42;
+free(heapInt);  // Manual deallocation required
+```
+
+Heap memory:
+- **Manual management** required
+- **Unlimited size** (limited by system RAM)
+- **Slower** than stack
+- **Lifetime:** Until explicitly freed
+
+### Arena Allocation
+
+```webplus
+int* arenaInt = arena<int>(100);  // Fast arena allocation
+// No individual free - arena cleared as a whole
+```
+
+Arena allocators:
+- **Fastest allocation** for bulk allocations
+- **No individual free**
+- **Region-based** memory management
+- **Use case:** Temporary buffers, batch processing
+
+## Control Flow
+
+### If Statements
+
+```webplus
+if (x > 0) {
+    // Positive
+} else if (x < 0) {
+    // Negative
+} else {
+    // Zero
+}
+```
+
+### Loops
+
+```webplus
+// While loop
+while (condition) {
+    // Body
+}
+
+// For loop
+for (int i = 0; i < 10; i++) {
+    // Body
+}
+```
+
+## Functions
+
+### Function Declaration
+
+```webplus
+ReturnType functionName(ParamType param1, ParamType param2) {
+    // Function body
+    return value;
+}
+```
+
+### Parameters
+
+- **Pass by value** (default)
+- **Pass by pointer** (`Type*`)
+- **Pass by reference** (`Type&`)
+
+```webplus
+void byValue(int x) { }
+void byPointer(int* x) { }
+void byReference(int& x) { }
+```
+
+### Return Values
+
+Functions must return a value if return type is not `void`:
+
+```webplus
+int calculate() {
+    return 42;  // Required
+}
+
+void noReturn() {
+    // No return statement needed
+}
+```
+
+## Structs
+
+### Struct Definition
+
+```webplus
+struct User {
+    int id;
+    string name;
+    string email;
+};
+```
+
+### Struct Usage
+
+```webplus
+// Stack allocation
+User user;
+user.id = 1;
+user.name = "Samin";
+
+// Heap allocation
+User* userPtr = alloc<User>(1);
+userPtr->id = 1;
+userPtr->name = "Samin";
+free(userPtr);
+```
+
+## Type System
+
+### Static Typing
+
+Web+ is **statically typed**. All types are checked at compile time:
+
+```webplus
+int x = 42;       // OK
+x = "string";     // ERROR: type mismatch
+```
+
+### Type Inference
+
+Limited type inference in some contexts:
+
+```webplus
+auto result = add(1, 2);  // Inferred as int
+```
+
+### Type Conversions
+
+**Implicit conversions** are **not allowed**. All conversions must be explicit:
+
+```webplus
+float f = 3.14;
+int i = (int)f;       // Explicit cast required
+```
+
+### Allowed explicit casts:
+
+- `int` ↔ `float`, `double`
+- `char` → `int`
+- `bool` → `int` (true=1, false=0)
+- Pointers of same base type
+
+### Forbidden conversions:
+
+- `string` ↔ numeric types (use parsing functions)
+- Pointers of different base types (without explicit cast)
+- `void*` to typed pointer (unsafe)
+
+## Compile-Time Evaluation
+
+Web+ performs several compile-time checks:
+
+### Type Checking
+
+All types must match:
+
+```webplus
+int x = 42;
+string y = x;  // ERROR: Cannot assign int to string
+```
+
+### Memory Safety Hints
+
+Optional bounds checking in debug builds:
+
+```webplus
+int* arr = alloc<int>(10);
+arr[100] = 42;  // WARNING: Possible out-of-bounds access
+```
+
+### Syntax Validation
+
+All syntax must be correct:
+
+```webplus
+if (x > 0  // ERROR: Missing closing parenthesis
+```
+
+## Execution Model
+
+### Deterministic Execution
+
+Web+ guarantees deterministic execution order:
+
+1. Global variable initialization (if any)
+2. `main()` function execution
+3. Event callbacks (DOM, HTTP, workers)
+
+### No Garbage Collection
+
+Memory is **never** automatically reclaimed. All allocations must be explicitly freed:
+
+```webplus
+int* data = alloc<int>(100);
+// ... use data ...
+free(data);  // Required!
+```
+
+### WebAssembly Runtime
+
+Web+ compiles to WebAssembly, which provides:
+
+- **Sandboxed execution** in browser
+- **Near-native performance**
+- **Linear memory** model
+- **No access** to host system without explicit bindings
+
+## Next Steps
+
+Explore specific language features:
+
+<CardGroup cols={2}>
+  <Card title="Types" icon="code" href="/language-spec/types">
+    Complete type system reference
+  </Card>
+  <Card title="Memory Management" icon="memory" href="/language-spec/memory">
+    Detailed memory model documentation
+  </Card>
+  <Card title="Web Primitives" icon="globe" href="/language-spec/web-primitives">
+    DOM, HTTP, workers, and fetch
+  </Card>
+  <Card title="Concurrency" icon="arrows-split-up-and-left" href="/language-spec/concurrency">
+    Workers and concurrent execution
+  </Card>
+</CardGroup>
+
+
+================================================================================
+SECTION: LANGUAGE-SPEC/TYPES.MDX
+================================================================================
+
+---
+title: "Type System"
+description: "Complete type system reference for Web+"
+---
+
+# Type System
+
+Web+ is a statically-typed language with explicit type declarations and compile-time type checking. This page provides a complete reference for the type system.
+
+## Primitive Types
+
+### Integer Types
+
+#### int
+32-bit signed integer
+
+**Range:** `-2,147,483,648` to `2,147,483,647`  
+**Size:** 4 bytes  
+**Alignment:** 4 bytes
+
+```webplus
+int age = 25;
+int temperature = -10;
+int max = 2147483647;
+```
+
+**Use cases:**
+- Counters and indices
+- Small whole numbers
+- General-purpose integer arithmetic
+
+---
+
+### Floating-Point Types
+
+####float
+32-bit IEEE 754 single-precision floating point
+
+**Precision:** ~7 decimal digits  
+**Size:** 4 bytes  
+**Range:** ±3.4 × 10³⁸
+
+```webplus
+float pi = 3.14159;
+float price = 19.99;
+float epsilon = 0.0001;
+```
+
+**Use cases:**
+- Graphics coordinates
+- Physics simulations
+- General decimal numbers where precision isn't critical
+
+#### double
+64-bit IEEE 754 double-precision floating point
+
+**Precision:** ~15 decimal digits  
+**Size:** 8 bytes  
+**Range:** ±1.7 × 10³⁰⁸
+
+```webplus
+double precise_pi = 3.141592653589793;
+double scientific = 6.02214076e23;
+```
+
+**Use cases:**
+- Scientific calculations
+- Financial computations
+- High-precision requirements
+
+---
+
+### Boolean Type
+
+#### bool
+Boolean true/false value
+
+**Size:** 1 byte  
+**Values:** `true` or `false`
+
+```webplus
+bool isReady = true;
+bool hasErrors = false;
+bool condition = (x > 10);
+```
+
+**Implicit conversions:** NONE  
+**Explicit conversions:**
+- `(int)true` → `1`
+- `(int)false` → `0`
+
+---
+
+### Character Type
+
+#### char
+Single ASCII character
+
+**Size:** 1 byte  
+**Range:** 0-255 (ASCII)
+
+```webplus
+char letter = 'A';
+char digit = '7';
+char newline = '\n';
+```
+
+**Escape sequences:**
+- `\n` - newline
+- `\t` - tab
+- `\\` - backslash
+- `\'` - single quote
+- `\"` - double quote
+
+---
+
+### String Type
+
+#### string
+UTF-8 encoded text string
+
+**Implementation:** `std::string` in generated C++  
+**Encoding:** UTF-8
+
+```webplus
+string name = "Web+";
+string message = "Hello, World!";
+string empty = "";
+```
+
+**Methods:**
+```webplus
+int len = text.length();
+string sub = text.substring(0, 5);
+string upper = text.toUpperCase();
+string lower = text.toLowerCase();
+```
+
+**Concatenation:**
+```webplus
+string full = first + " " + last;
+```
+
+---
+
+### Void Type
+
+#### void
+No return value
+
+```webplus
+void printMessage() {
+    // No return statement
+}
+
+void* generic_ptr;  // Generic pointer (use cautiously)
+```
+
+---
+
+## Composite Types
+
+### Pointers
+
+#### Definition
+Reference to memory address
+
+**Syntax:** `Type*`
+
+```webplus
+int* ptr = alloc<int>(1);
+*ptr = 42;  // Dereference
+free(ptr);
+```
+
+**Operations:**
+- `*` - Dereference (get value at address)
+- `&` - Address-of (get address of variable)
+- `->` - Member access through pointer
+
+```webplus
+int x = 10;
+int* ptr = &x;  // Get address
+int value = *ptr;  // Get value (10)
+```
+
+#### Struct Pointers
+
+```webplus
+struct User {
+    int id;
+    string name;
+};
+
+User* user = alloc<User>(1);
+user->id = 1;  // Arrow operator
+user->name = "Samin";
+free(user);
+```
+
+---
+
+### References
+
+#### Definition
+Alias to existing variable
+
+**Syntax:** `Type&`
+
+```webplus
+int x = 10;
+int& ref = x;  // Reference to x
+ref = 20;  // Modifies x
+```
+
+**Characteristics:**
+- Must be initialized when declared
+- Cannot be reassigned
+- No null references
+- Automatically dereferenced
+
+**Use cases:**
+- Function parameters (avoid copies)
+- Returning large objects
+- Operator overloading
+
+---
+
+### Arrays
+
+#### Static Arrays
+Fixed-size arrays (stack allocated)
+
+```webplus
+int numbers[10];
+numbers[0] = 42;
+int first = numbers[0];
+```
+
+#### Dynamic Arrays
+Heap-allocated arrays
+
+```webplus
+int* numbers = alloc<int>(100);
+numbers[0] = 1;
+numbers[99] = 100;
+free(numbers);
+```
+
+**Multidimensional:**
+```webplus
+int** matrix = alloc<int*>(10);
+for (int i = 0; i < 10; i++) {
+    matrix[i] = alloc<int>(10);
+}
+
+matrix[5][5] = 42;
+
+// Free in reverse
+for (int i = 0; i < 10; i++) {
+    free(matrix[i]);
+}
+free(matrix);
+```
+
+---
+
+### Structs
+
+#### Definition
+User-defined composite types
+
+```webplus
+struct Point {
+    float x;
+    float y;
+};
+
+struct User {
+    int id;
+    string name;
+    string email;
+};
+```
+
+#### Usage
+
+**Stack allocation:**
+```webplus
+Point p;
+p.x = 10.0;
+p.y = 20.0;
+```
+
+**Heap allocation:**
+```webplus
+User* user = alloc<User>(1);
+user->id = 1;
+user->name = "Samin";
+free(user);
+```
+
+#### Nested Structs
+
+```webplus
+struct Address {
+    string street;
+    string city;
+};
+
+struct Person {
+    string name;
+    Address address;
+};
+
+Person p;
+p.address.city = "New York";
+```
+
+---
+
+## Web-Native Types
+
+### dom::Element
+DOM element reference
+
+```webplus
+dom::Element button = dom::get("#submit");
+button.on("click", handler);
+```
+
+### Response
+HTTP response object
+
+```webplus
+Response r = json({ "status": "ok" });
+return r;
+```
+
+### Future\<T\>
+Async operation result
+
+```webplus
+Future<Response> future = fetch("/api/data");
+future.then(handler);
+```
+
+### worker
+Web Worker handle
+
+```webplus
+worker w = worker::spawn(calculation);
+int result = w.join();
+```
+
+---
+
+## Type Conversions
+
+### Explicit Casts
+
+**Numeric conversions:**
+```webplus
+float f = 3.14;
+int i = (int)f;  // 3
+
+int x = 65;
+char c = (char)x;  // 'A'
+```
+
+**Pointer conversions:**
+```webplus
+void* generic = alloc<int>(1);
+int* specific = (int*)generic;
+```
+
+### Forbidden Conversions
+
+**No implicit conversions:**
+```webplus
+int x = 3.14;  // ERROR: float to int requires cast
+float f = "42";  // ERROR: string to float not allowed
+```
+
+**String conversions require functions:**
+```webplus
+string s = "42";
+int i = parseInt(s);
+
+int value = 42;
+string s = toString(value);
+```
+
+---
+
+## Type Inference (Limited)
+
+### auto Keyword
+
+```webplus
+auto result = calculate();  // Type inferred from return value
+auto count = getCount();
+```
+
+**Restrictions:**
+- Must be initialized
+- Type determined at compile-time
+- Not available for function parameters
+
+---
+
+## Type Checking
+
+### Compile-Time Checks
+
+All type mismatches caught at compile time:
+
+```webplus
+int x = 42;
+string s = x;  // ERROR: Cannot assign int to string
+
+float calculate(int a, int b);
+float result = calculate("5", "10");  // ERROR: Wrong parameter types
+```
+
+### Runtime Checks (Optional)
+
+Enable with `--bounds-check` flag:
+
+```webplus
+int* arr = alloc<int>(10);
+arr[100] = 42;  // WARNING: Out of bounds access
+```
+
+---
+
+## Type Safety
+
+### Memory Safety
+
+**Type-safe allocations:**
+```webplus
+int* ptr = alloc<int>(10);  // Type is preserved
+ptr[0] = 42;  // Type-checked access
+```
+
+**Dangling pointer detection (debug mode):**
+```webplus
+int* ptr = alloc<int>(1);
+free(ptr);
+*ptr = 42;  // WARNING: Use after free
+```
+
+### Null Safety
+
+**No automatic null checks:**
+```webplus
+int* ptr = nullptr;
+*ptr = 42;  // Undefined behavior, no automatic check
+```
+
+**Manual check required:**
+```webplus
+if (ptr != nullptr) {
+    *ptr = 42;
+}
+```
+
+---
+
+## Best Practices
+
+1. **Use the smallest type** that fits your data
+2. **Prefer references** over pointers for function parameters
+3. **Avoid void\*** unless absolutely necessary
+4. **Always initialize** variables
+5. **Use structs** to group related data
+6. **Be explicit** - no implicit conversions
+
+---
+
+## See Also
+
+- [Memory Management](/language-spec/memory)
+- [Structs](/language-spec/structs)
+- [Functions](/language-spec/functions)
+
+
+================================================================================
+SECTION: LANGUAGE-SPEC/MEMORY.MDX
+================================================================================
+
+---
+title: "Memory Management"
+description: "Detailed guide to Web+'s manual memory model"
+---
+
+# Memory Management
+
+Web+ is designed for performance and predictability. It provides a C++-inspired manual memory model, giving you full control over when and where memory is allocated and freed. There is **no garbage collector** in Web+.
+
+## The Linear Memory Model
+
+In the WebAssembly environment, all Web+ memory resides in a single, large buffer called **Linear Memory**. The runtime organizes this memory into several regions:
+
+1. **Stack**: Used for local variables and function call frames.
+2. **Heap**: Used for dynamic allocations via `alloc`.
+3. **Data**: Stores global constants and static data.
+
+---
+
+## Stack Allocation
+
+Stack allocation is automatic and handled by the compiler.
+
+```cpp
+void calculate() {
+    int x = 42;           // Allocated on stack
+    float arr[10];        // Allocated on stack
+    Point p = { 1, 2 };   // Allocated on stack
+} // All memory is automatically reclaimed here
+```
+
+- **Pros**: Extremely fast (O(1)), no manual cleanup.
+- **Cons**: Limited size, memory is lost when the function returns.
+
+---
+
+## Heap Allocation
+
+Dynamic memory is allocated using `webplus::alloc<T>(count)`. You are responsible for freeing this memory.
+
+```cpp
+// Allocate an array of 100 integers
+int* buffer = webplus::alloc<int>(100);
+
+// Use the buffer
+buffer[0] = 500;
+
+// MUST free to avoid memory leaks
+webplus::free_ptr(buffer);
+```
+
+### Safety Rules
+- **Double Free**: Never call `free_ptr` on the same pointer twice.
+- **Memory Leak**: Always ensure every `alloc` has a corresponding `free_ptr`.
+- **Dangling Pointer**: Do not use a pointer after it has been freed.
+
+---
+
+## Arena Allocation
+
+Arenas provide a way to perform many small allocations very quickly and free them all in a single operation.
+
+```cpp
+// Create an arena with 1MB of space
+webplus::Arena<char> tempPool(1024 * 1024);
+
+// Allocate many small objects
+char* s1 = tempPool.allocate(10);
+char* s2 = tempPool.allocate(20);
+
+// Free EVERYTHING at once
+tempPool.reset();
+```
+
+Arenas are ideal for tasks with a clear "end of life", such as processing a single HTTP request or a single frame in a game.
+
+---
+
+## Strings and Memory
+
+`webplus::String` is a wrapper around a heap-allocated char buffer.
+
+```cpp
+webplus::String s = "Hello";
+s.append(" World");
+
+// Strings must be cleared to free their internal heap buffer
+s.clear();
+```
+
+---
+
+## Memory Safety Features
+
+While Web+ is a low-level language, the compiler provides hints to help you stay safe:
+
+- **Uninitialized Warning**: The compiler warns if you use a variable before assigning it a value.
+- **Bounds Checking (Debug Only)**: In development builds (`webplus build --debug`), the runtime will throw an error if you access an array out of its allocated bounds.
+- **Null Checks**: You should explicitly check for `nullptr` when dealing with pointers returned from `get()` or `alloc()`.
+
+---
+
+## Best Practices
+
+1. **Prefer Stack over Heap**: Only used `alloc` when the data size is dynamic or needs to outlive the current function.
+2. **RAII (Resource Acquisition Is Initialization)**: Wrap pointers in structs that free the memory in their destructor (once Web+ fully supports destructors in v0.2).
+3. **Use the Arena**: For any task requiring multiple temporary allocations, use an `Arena` to simplify cleanup and improve performance.
+
+
+================================================================================
+SECTION: LANGUAGE-SPEC/CONCURRENCY.MDX
+================================================================================
+
+---
+title: "Concurrency"
+description: "Web Workers, multi-threading, and concurrent execution in Web+"
+---
+
+# Concurrency
+
+Web+ provides first-class support for multi-threading via Web Workers. Unlike JavaScript's complex `MessagePort` system, Web+ simplifies concurrency with a C++-inspired model using `worker::spawn` and `join()`.
+
+## Threading Model
+
+Web+ threads (Workers) have the following characteristics:
+- **Dedicated Memory**: Each worker runs in its own thread with its own stack and specific heap segments.
+- **Asynchronous Execution**: Workers do not block the main UI thread.
+- **Deterministic**: Execution order within a worker is strictly linear.
+
+## worker::spawn
+
+The `worker::spawn` primitive creates and starts a new worker.
+
+```webplus
+worker w = worker::spawn([] {
+    // This code runs in a background thread
+    return heavyCalculation();
+});
+```
+
+### Passing Data
+Shared data should be managed carefully. For v0.1, it is recommended to pass data via heap-allocated pointers, ensuring that only one thread accesses the data at a time to avoid race conditions.
+
+---
+
+## Joining Workers
+
+To retrieve the result of a worker, use the `join()` method. This will block the calling thread until the worker has finished its task.
+
+```webplus
+worker w = worker::spawn([] {
+    return fib(40);
+});
+
+// Main thread waits here
+int result = w.join();
+webplus::print("Result: ", result);
+```
+
+> **Warning**: Calling `join()` on the main thread will block the browser UI. For long-running tasks, consider using callbacks or polling if you need to keep the UI responsive.
+
+---
+
+## Detaching Workers
+
+If you don't need the result of a worker, you can `detach()` it. The worker will continue to run in the background, and its resources will be reclaimed by the runtime upon completion.
+
+```webplus
+worker w = worker::spawn([] {
+    saveDataToDisk();
+});
+
+w.detach();
+// Main thread continues immediately
+```
+
+---
+
+## Example: Parallel Processing
+
+```webplus
+int processTask(int id) {
+    // Complex logic...
+    return id * 2;
+}
+
+void main() {
+    webplus::Vector<worker> tasks;
+    
+    // Spawn 4 parallel tasks
+    for (int i = 0; i < 4; i++) {
+        tasks.push(worker::spawn([i] {
+            return processTask(i);
+        }));
+    }
+    
+    // Collect results
+    for (int i = 0; i < 4; i++) {
+        int res = tasks[i].join();
+        webplus::print("Task ", i, " result: ", res);
+    }
+}
+```
+
+---
+
+## Limitations in v0.1
+
+- **No SharedArrayBuffer**: v0.1 doesn't support shared memory between workers yet.
+- **Single-wait**: You can only `join()` a worker once.
+- **Manual Cleanup**: Ensure your worker code cleans up its own heap allocations.
+
+
+================================================================================
+SECTION: LANGUAGE-SPEC/WEB-PRIMITIVES.MDX
+================================================================================
+
+---
+title: "Web Primitives"
+description: "DOM, HTTP, Fetch, and Workers built into the language"
+---
+
+# Web Primitives
+
+Web+ treats web APIs as **first-class language primitives**, not libraries. This means DOM manipulation, HTTP routing, fetch requests, and workers are built directly into the language syntax.
+
+## DOM Manipulation
+
+### dom::get
+
+Retrieve DOM elements by CSS selector:
+
+```webplus
+dom::Element elem = dom::get("#myElement");
+dom::Element button = dom::get(".submit-button");
+dom::Element first = dom::get("div");
+```
+
+**Signature:**
+```webplus
+dom::Element dom::get(string selector)
+```
+
+**Parameters:**
+- `selector` — CSS selector string
+
+**Returns:**
+- `dom::Element` — DOM element wrapper
+
+**Behavior:**
+- Returns first matching element
+- Equivalent to `document.querySelector()` in JavaScript
+- Returns null element if not found
+
+### Element Methods
+
+#### text()
+
+Get or set element text content:
+
+```webplus
+// Get text
+string content = elem.text();
+
+// Set text
+elem.text("New content");
+```
+
+#### html()
+
+Get or set innerHTML:
+
+```webplus
+// Get HTML
+string markup = elem.html();
+
+// Set HTML
+elem.html("<strong>Bold text</strong>");
+```
+
+#### on()
+
+Attach event listeners:
+
+```webplus
+elem.on("click", [] {
+    // Event handler
+    dom::get("#status").text("Clicked!");
+});
+
+elem.on("mouseover", [] {
+    // Hover handler
+});
+```
+
+**Supported Events:**
+- `click`, `dblclick`
+- `mouseover`, `mouseout`, `mousemove`
+- `keydown`, `keyup`, `keypress`
+- `focus`, `blur`
+- `submit`, `change`, `input`
+
+#### append()
+
+Append child element:
+
+```webplus
+dom::Element parent = dom::get("#container");
+dom::Element child = dom::get("#item");
+
+parent.append(child);
+```
+
+#### remove()
+
+Remove element from DOM:
+
+```webplus
+elem.remove();
+```
+
+### Complete Example
+
+```webplus
+void main() {
+    dom::Element input = dom::get("#nameInput");
+    dom::Element button = dom::get("#submitButton");
+    dom::Element output = dom::get("#output");
+    
+    button.on("click", [] {
+        string name = input.text();
+        output.text("Hello, " + name + "!");
+    });
+}
+```
+
+---
+
+## HTTP Routing (Server-Side)
+
+### route Keyword
+
+Define HTTP endpoints:
+
+```webplus
+route GET "/path" -> Response {
+    // Handler code
+    return response;
+}
+```
+
+**Syntax:**
+```webplus
+route METHOD "path" -> Response {
+    // Handler body
+}
+```
+
+### HTTP Methods
+
+```webplus
+route GET "/users" -> Response { }
+route POST "/users" -> Response { }
+route PUT "/users/:id" -> Response { }
+route DELETE "/users/:id" -> Response { }
+route PATCH "/users/:id" -> Response { }
+```
+
+### Route Parameters
+
+Extract dynamic path segments:
+
+```webplus
+route GET "/api/user/:id" -> Response {
+    int userId = param("id");
+    return json({ "id": userId });
+}
+
+route GET "/post/:category/:slug" -> Response {
+    string category = param("category");
+    string slug = param("slug");
+    // ...
+}
+```
+
+**Parameter Syntax:**
+- `:paramName` in path
+- `param("paramName")` to extract
+
+### Response Types
+
+#### json()
+
+Return JSON response:
+
+```webplus
+route GET "/api/data" -> Response {
+    return json({
+        "status": "ok",
+        "data": [1, 2, 3]
+    });
+}
+```
+
+#### Response::text()
+
+Return plain text:
+
+```webplus
+route GET "/health" -> Response {
+    return Response::text("OK");
+}
+```
+
+#### Response::status()
+
+Return HTTP status code:
+
+```webplus
+route GET "/forbidden" -> Response {
+    return Response::status(403);
+}
+```
+
+#### Response::not_found()
+
+Return 404:
+
+```webplus
+route GET "/api/user/:id" -> Response {
+    User* user = db::find<User>(param("id"));
+    
+    if (!user) {
+        return Response::not_found();
+    }
+    
+    return json(user);
+}
+```
+
+### Complete Example
+
+```webplus
+struct User {
+    int id;
+    string name;
+    string email;
+};
+
+route GET "/api/users" -> Response {
+    // List all users
+    return json({ "users": [] });
+}
+
+route GET "/api/user/:id" -> Response {
+    int userId = param("id");
+    
+    User* user = alloc<User>(1);
+    user->id = userId;
+    user->name = "Samin Yeasar";
+    user->email = "sheditzofficial918@gmail.com";
+    
+    Response res = json(user);
+    free(user);
+    
+    return res;
+}
+
+route POST "/api/user" -> Response {
+    // Create new user
+    return json({ "success": true });
+}
+```
+
+---
+
+## Fetch API
+
+### fetch()
+
+Make HTTP requests:
+
+```webplus
+fetch("/api/data")
+    .then([](Response r) {
+        string data = r.json()["message"];
+        dom::get("#output").text(data);
+    });
+```
+
+**Signature:**
+```webplus
+Future<Response> fetch(string url)
+```
+
+**Parameters:**
+- `url` — URL to request
+
+**Returns:**
+- `Future<Response>` — Async response
+
+### Response Methods
+
+#### json()
+
+Parse JSON response:
+
+```webplus
+fetch("/api/data")
+    .then([](Response r) {
+        auto data = r.json();
+        string message = data["message"];
+    });
+```
+
+#### text()
+
+Get response as text:
+
+```webplus
+fetch("/api/text")
+    .then([](Response r) {
+        string content = r.text();
+    });
+```
+
+### Error Handling
+
+```webplus
+fetch("/api/data")
+    .then([](Response r) {
+        // Success
+    })
+    .catch([](Error e) {
+        // Handle error
+        dom::get("#error").text("Request failed");
+    });
+```
+
+---
+
+## Web Workers
+
+### worker::spawn
+
+Create background worker:
+
+```webplus
+worker w = worker::spawn([] {
+    return heavyComputation();
+});
+```
+
+**Signature:**
+```webplus
+worker worker::spawn(Function callback)
+```
+
+**Parameters:**
+- `callback` — Function to execute in worker
+
+**Returns:**
+- `worker` — Worker handle
+
+### join()
+
+Wait for worker completion:
+
+```webplus
+worker w = worker::spawn([] {
+    return fib(40);
+});
+
+int result = w.join();  // Blocks until complete
+```
+
+### detach()
+
+Run worker without waiting:
+
+```webplus
+worker w = worker::spawn([] {
+    // Background task
+});
+
+w.detach();  // Don't wait for completion
+```
+
+### Complete Example
+
+```webplus
+int fib(int n) {
+    if (n <= 1) return n;
+    return fib(n - 1) + fib(n - 2);
+}
+
+void main() {
+    dom::Element status = dom::get("#status");
+    status.text("Calculating...");
+    
+    worker w = worker::spawn([] {
+        return fib(40);
+    });
+    
+    int result = w.join();
+    
+    status.text("Result: " + result);
+}
+```
+
+---
+
+## Memory Considerations
+
+### Web Primitives and Memory
+
+All web primitive objects use manual memory management:
+
+```webplus
+// DOM elements are lightweight references
+dom::Element elem = dom::get("#app");  // No allocation needed
+
+// Structs used in routes require manual management
+route GET "/api/user" -> Response {
+    User* user = alloc<User>(1);
+    // ... setup user ...
+    Response res = json(user);
+    free(user);  // Required!
+    return res;
+}
+
+// Workers share memory model
+worker w = worker::spawn([] {
+    int* data = alloc<int>(1000);
+    // ... process data ...
+    free(data);
+    return result;
+});
+```
+
+### Performance Notes
+
+- **DOM access** crosses WASM↔JS boundary (some overhead)
+- **HTTP routes** are compiled to WASM with minimal JS glue
+- **Fetch** is async and non-blocking
+- **Workers** run in separate threads with isolated memory
+
+---
+
+## Compilation Details
+
+Web primitives are transpiled to Emscripten bindings:
+
+```webplus
+dom::get("#app").text("Hello");
+```
+
+Generates:
+
+```cpp
+val::global("document")
+    .call<val>("querySelector", "#app")
+    .call<void>("setAttribute", "textContent", "Hello");
+```
+
+This ensures minimal overhead while maintaining WebAssembly performance.
+
+---
+
+## See Also
+
+- [DOM API Reference](/api-reference/dom)
+- [HTTP API Reference](/api-reference/http)
+- [Fetch API Reference](/api-reference/fetch)
+- [Workers API Reference](/api-reference/workers)
+
+
+================================================================================
+SECTION: API-REFERENCE/INTRODUCTION.MDX
+================================================================================
+
+---
+title: 'API Introduction'
+description: 'Overview of the Web+ API surface'
+---
+
+# API Reference
+
+The Web+ API reference provides detailed documentation for all built-in types, functions, and primitives.
+
+## Structure
+
+The documentation is divided into the following sections:
+
+- **Standard Library**: Core memory management, containers, and utilities.
+- **DOM Primitives**: First-class support for browser element manipulation.
+- **Fetch & Network**: Asynchronous HTTP requests and streaming data.
+- **Concurrency**: Background workers and multi-threading tools.
+- **JSON & Data**: Parsing and serialization helpers.
+
+## Usage
+
+To use any of these APIs, include the main header:
+
+```cpp
+#include "webplus.hpp"
+```
+
+Or include specific headers for faster compilation:
+
+```cpp
+#include "runtime/memory.hpp"
+#include "browser/dom.hpp"
+```
+
+## Performance
+
+All Web+ APIs are designed with a **low-overhead philosophy**. Most operations map directly to WebAssembly instructions or highly optimized JavaScript bridge calls.
+
+---
+
+## v0.1 Status
+
+This reference covers the features available in the current MVP (v0.1). Check the roadmap in individual sections for upcoming features in v0.2 and beyond.
+
+
+================================================================================
+SECTION: API-REFERENCE/STDLIB.MDX
+================================================================================
+
+---
+title: 'Standard Library Overview'
+description: 'Introduction and initialization of the Web+ Stdlib'
+---
+
+# Standard Library
+
+The `webplus.hpp` header is the gateway to the entire minimal standard library. It provides high-performance, cross-platform utilities for the modern web.
+
+## Namespace Structure
+
+All standard library features are organized under the `webplus` namespace:
+
+- `webplus`: Core memory, strings, and logging.
+- `webplus::dom`: Browser-only DOM manipulation.
+- `webplus::wasm`: WASM runtime specific controls.
+
+## Lifecycle Management
+
+To ensure proper behavior of memory registries and JS-bridge handles, you must initialize and cleanup the library.
+
+### webplus::stdlib_init()
+Initializes the internal registries for strings, DOM elements, and promises. Should be called at the very beginning of `main()`.
+
+### webplus::stdlib_cleanup()
+Frees global resources and clears registries. Should be called at the end of `main()`.
+
+```cpp
+#include "webplus.hpp"
+
+void main() {
+    webplus::stdlib_init();
+    
+    // Core Logic
+    
+    webplus::stdlib_cleanup();
+}
+```
+
+---
+
+## Logging & Debugging
+
+The stdlib provides variadic logging functions that integrate with the browser console.
+
+| Function | Output Prefix | Usage |
+| :--- | :--- | :--- |
+| `print()` | None | General logging |
+| `warn()` | `[WARN]` | Warning messages |
+| `error()` | `[ERROR]` | High-importance errors |
+| `log()` | None | Alias for print |
+
+### Examples
+
+```cpp
+webplus::print("System online");
+webplus::warn("Low memory: ", available, " bytes");
+webplus::error("Permission denied to ", file_path);
+```
+
+---
+
+## Target Platforms
+
+- **Browsers**: Compiles to WASM/JS. This is the primary target for v0.1.
+- **Server (WASI)**: Compiles to standalone WASM for runtimes like Wasmtime or Wasmer. (Experimental in v0.1).
+
+
+================================================================================
+SECTION: API-REFERENCE/MEMORY.MDX
+================================================================================
+
+---
+title: 'Memory API'
+description: 'Manual memory management primitives and allocators'
+---
+
+# Memory API
+
+Web+ is a systems-oriented language that provides explicit control over memory. This section details the core primitives and allocation patterns.
+
+## Primitive Types
+
+The standard library defines fixed-width and primitive types in the `webplus` namespace:
+
+```cpp
+webplus::int32      // 32-bit signed integer
+webplus::float32    // 32-bit single-precision float
+webplus::float64    // 64-bit double-precision float
+webplus::bool_t     // Boolean (true/false)
+webplus::char_t     // Single ASCII character
+```
+
+## Heap Allocation
+
+Use the `alloc` template function to allocate memory on the heap. You MUST manually free this memory using `free_ptr`.
+
+### alloc\<T\>
+
+Allocates a block of memory sufficient to hold `count` elements of type `T`.
+
+```cpp
+template<typename T>
+T* alloc(size_t count);
+```
+
+**Parameters:**
+- `count`: Number of elements to allocate.
+
+**Returns:**
+- A pointer to the newly allocated memory.
+
+### free_ptr\<T\>
+
+Deallocates memory previously allocated with `alloc`.
+
+```cpp
+template<typename T>
+void free_ptr(T* ptr);
+```
+
+**Parameters:**
+- `ptr`: Pointer to the memory block to be freed.
+
+---
+
+## String Class
+
+`webplus::String` is a manual-memory managed UTF-8 string.
+
+### Usage
+
+```cpp
+// Creation
+webplus::String name = "Web+";
+
+// Operations
+name.append(" is fast");
+size_t len = name.length();
+const char* raw = name.c_str();
+
+// Cleanup
+name.clear(); // Explicitly free the buffer
+```
+
+### Methods
+- `c_str()`: Returns a pointer to the null-terminated C-string.
+- `length()`: Returns the number of characters.
+- `empty()`: Returns true if the string is empty.
+- `append(const char*)`: Appends text to the string.
+- `clear()`: Frees the internal buffer.
+
+---
+
+## Arena Allocator
+
+The `Arena` allocator provides fast "bump" allocation for short-lived data. All memory is freed at once when the arena is reset.
+
+### Definition
+
+```cpp
+webplus::Arena<int> arena(1024); // 1024 elements
+int* data = arena.allocate(10);  // O(1) allocation
+arena.reset();                    // O(1) bulk free
+```
+
+**Best for:**
+- Temporary processing buffers
+- Per-frame request allocations
+- Batch processing
+
+---
+
+## StackArray\<T\>
+
+A thin wrapper around stack-allocated (fixed-size) arrays with safety checks.
+
+```cpp
+webplus::StackArray<int> arr(10);
+arr[0] = 5;
+size_t s = arr.size();
+```
+
+**Note:** Sizes must be known or fixed at allocation time.
+
+---
+
+## Best Practices
+
+1. **RAII-like clearing**: Always pair an allocation or string creation with an explicit `clear()` or `free_ptr()`.
+2. **Use Arenas for Temp Data**: Avoid heap fragmentation by using `Arena` for tasks that only need memory for a short duration.
+3. **Null Check**: Always verify the validity of elective pointers before dereferencing.
+
+
+================================================================================
+SECTION: API-REFERENCE/CONTAINERS.MDX
+================================================================================
+
+---
+title: 'Containers'
+description: 'Dynamic data structures in Web+'
+---
+
+# Containers
+
+Web+ provides highly optimized, manual-memory managed containers for dynamic data storage.
+
+## Vector\<T\>
+
+The `Vector` is a dynamic array that grows automatically as you add elements. It is the primary container for most applications.
+
+### Definition
+
+```cpp
+#include "runtime/vector.hpp"
+
+webplus::Vector<int> list;
+```
+
+### Methods
+
+#### list.push(value)
+Adds an element to the end of the vector. If the capacity is exceeded, the vector will automatically reallocate with more space.
+- **Complexity**: Amortized O(1)
+
+#### list.pop()
+Removes and returns the last element.
+- **Complexity**: O(1)
+
+#### list.at(index) / list[index]
+Accesses the element at the specified index.
+- **Complexity**: O(1)
+
+#### list.size()
+Returns the number of elements currently in the vector.
+
+#### list.capacity()
+Returns the total number of elements the vector can hold before the next reallocation.
+
+#### list.clear()
+Frees the underlying buffer and resets the size to 0.
+
+#### list.reserve(new_capacity)
+Increases the capacity of the vector to at least `new_capacity`.
+
+### Example
+
+```cpp
+webplus::Vector<webplus::String> names;
+
+names.push("Alice");
+names.push("Bob");
+
+for(size_t i = 0; i < names.size(); i++) {
+    webplus::print("Person: ", names[i].c_str());
+}
+
+// Cleanup
+names.clear();
+```
+
+---
+
+## Performance Considerations
+
+- **Manual Management**: Unlike JavaScript Arrays, `webplus::Vector` does not have a hidden garbage collector. You must call `clear()` when the vector is no longer needed.
+- **Contiguous Memory**: Elements are stored in contiguous memory, making `at()` extremely fast and cache-friendly.
+- **Reallocation**: To avoid frequent reallocations, use `reserve()` if you know the approximate number of elements you'll be storing.
+
+
+================================================================================
+SECTION: API-REFERENCE/DOM.MDX
+================================================================================
+
+---
+title: 'DOM API'
+description: 'Interacting with the browser Document Object Model'
+---
+
+# DOM API
+
+In the browser runtime, Web+ provides first-class access to the DOM via the `webplus::dom` namespace.
+
+## Methods
+
+### dom::get(selector)
+Queries the DOM for the first element matching the CSS selector.
+- **Returns**: `dom::Element`
+
+### dom::getElementById(id)
+Finds an element by its ID attribute.
+- **Returns**: `dom::Element`
+
+### dom::createElement(tagName)
+Creates a new DOM element with the specified tag name.
+- **Returns**: `dom::Element`
+
+---
+
+## Element Class
+
+The `Element` class is a handle to a real DOM element managed by the JavaScript bridge.
+
+### Methods
+
+#### element.is_valid()
+Returns `true` if the element handle points to a valid DOM node.
+
+#### element.text(value) / element.text()
+- **Setter**: Sets the text content of the element.
+- **Getter**: Retrieves the current text content.
+
+#### element.html(value)
+Sets the inner HTML of the element. Use with caution to avoid XSS.
+
+#### element.set_attribute(name, value)
+Sets an attribute on the element (e.g., `id`, `src`, `href`).
+
+#### element.add_class(className)
+Adds a CSS class to the element.
+
+#### element.remove_class(className)
+Removes a CSS class from the element.
+
+#### element.append(child)
+Appends another `Element` as a child of this element.
+
+#### element.remove()
+Removes the element from the DOM.
+
+---
+
+## Example: Building a List
+
+```cpp
+using namespace webplus::dom;
+
+void main() {
+    Element app = get("#app");
+    
+    if (app.is_valid()) {
+        Element list = createElement("ul");
+        
+        for (int i = 0; i < 3; i++) {
+            Element item = createElement("li");
+            item.text("Item " + toString(i));
+            list.append(item);
+        }
+        
+        app.append(list);
+    }
+}
+```
+
+---
+
+## Architecture Note
+
+Web+ uses an **ID-based tracking system** for DOM elements. Instead of passing raw memory pointers to JavaScript, Web+ assigns an integer ID to each element tracked by the runtime. This ensures memory safety across the WASM/JS boundary and prevents memory leaks related to the DOM.
+
+
+================================================================================
+SECTION: API-REFERENCE/FETCH.MDX
+================================================================================
+
+---
+title: 'Fetch API'
+description: 'Asynchronous HTTP requests in the browser'
+---
+
+# Fetch API
+
+The Fetch API allows Web+ applications to make network requests to servers.
+
+## Functions
+
+### fetch(url)
+Makes a simple HTTP `GET` request.
+- **Returns**: `webplus::Promise`
+
+### fetch(url, method, body)
+Makes an HTTP request with a specific method and payload.
+- **Returns**: `webplus::Promise`
+
+---
+
+## Response Class
+
+The `Response` object is returned once the fetch promise resolves.
+
+### Methods
+- `ok()`: Returns true if the status is in the 200-299 range.
+- `status()`: Returns the HTTP status code.
+- `body()`: Returns the raw response body as a `webplus::String`.
+- `json_string()`: A convenience method to extract the body for JSON parsing.
+
+---
+
+## Promise Class
+
+Web+ uses a specialized `Promise` class to handle the asynchronous nature of web requests.
+
+### Usage
+
+```cpp
+webplus::Promise p = webplus::fetch("https://api.example.com/status");
+
+// Use the then() method to handle the result
+p.then([](webplus::Response res) {
+    if (res.ok()) {
+        webplus::print("Response: ", res.body().c_str());
+    }
+});
+```
+
+> **Note**: In v0.1, the full callback trampoline for `then()` is in a preview state. Native C++ lambdas with captures might have limitations until v0.2.
+
+---
+
+## Example: POSTing Data
+
+```cpp
+webplus::String url = "/api/v1/log";
+webplus::String payload = "{ \"event\": \"app_start\" }";
+
+webplus::fetch(url, "POST", payload).then([](webplus::Response res) {
+    webplus::print("Log sent. Status: ", res.status());
+});
+```
+
+
+================================================================================
+SECTION: API-REFERENCE/HTTP.MDX
+================================================================================
+
+---
+title: 'HTTP API (Server-Side)'
+description: 'Server-side routing and response handling'
+---
+
+# HTTP API
+
+The HTTP API is used for building server-side applications and microservices using the `route` primitive.
+
+## Routing
+
+### route METHOD "path"
+Defines an endpoint. Supported methods: `GET`, `POST`, `PUT`, `DELETE`.
+
+```cpp
+route GET "/api/status" -> Response {
+    return json({ "status": "online" });
+}
+```
+
+### URL Parameters
+Use the `:` prefix to define dynamic parameters.
+
+```cpp
+route GET "/user/:id" -> Response {
+    int userId = param("id");
+    return json({ "id": userId });
+}
+```
+
+---
+
+## Response Helpers
+
+The following static methods on `Response` (or global helpers) are used to return data:
+
+### json(object)
+Serializes a struct or map into a JSON response.
+
+### Response::text(string)
+Returns a plain text response with `200 OK`.
+
+### Response::status(code)
+Returns an empty response with the specified HTTP status code.
+
+### Response::not_found()
+Calculates and returns a `404 Not Found` response.
+
+---
+
+## Example: Simple API
+
+```cpp
+struct Version {
+    string v;
+};
+
+route GET "/version" -> Response {
+    Version* ver = webplus::alloc<Version>(1);
+    ver->v = "0.1.0";
+    
+    Response r = json(ver);
+    webplus::free_ptr(ver);
+    return r;
+}
+```
+
+---
+
+## Platform Note
+
+The server-side HTTP API requires a **WASI-compatible runtime** or a specialized Web+ server host. In v0.1, this is experimental and best used for conceptualizing microservices.
+
+
+================================================================================
+SECTION: API-REFERENCE/WORKERS.MDX
+================================================================================
+
+---
+title: 'Workers API'
+description: 'Manage background threads in Web+'
+---
+
+# Workers API
+
+The Workers API provides tools for offloading heavy computations to background threads.
+
+## Types
+
+### worker
+A handle to a background worker thread.
+
+## Functions
+
+### worker::spawn(callback)
+Spawns a new worker thread and executes the provided function.
+- **Returns**: `worker`
+
+### worker.join()
+Synchronously waits for the worker to finish and returns its result.
+- **Complexity**: Blocks until completion.
+
+### worker.detach()
+Allows the worker to run independently. The main thread will not wait for it.
+
+---
+
+## Example: Background Calculation
+
+```cpp
+int heavyWork() {
+    int sum = 0;
+    for(int i = 0; i < 1000000; i++) sum += i;
+    return sum;
+}
+
+void main() {
+    worker w = worker::spawn(heavyWork);
+    
+    // Do other things...
+    
+    int result = w.join();
+    webplus::print("Sum: ", result);
+}
+```
+
+---
+
+## Best Practices
+
+- **Avoid frequent spawning**: Spawning a worker has some overhead. Use workers for substantial tasks.
+- **Data Isolation**: Workers do not share stack variables. Pass data through heap pointers or shared structures.
+- **UI Responsiveness**: Use workers for anything that takes more than 16ms to ensure your app stays at 60fps.
+
+
+================================================================================
+SECTION: API-REFERENCE/JSON.MDX
+================================================================================
+
+---
+title: 'JSON API'
+description: 'Parsing and serializing data in Web+'
+---
+
+# JSON API
+
+Web+ provides built-in utilities for handling JSON data, which is essential for web communication.
+
+## Serialization
+
+### json(object)
+Converts a Web+ struct into a JSON-formatted `webplus::String`.
+- **Supported Types**: Native primitives, nested structs, and standard containers.
+
+```cpp
+struct User {
+    int id;
+    string name;
+};
+
+void main() {
+    User u = { 1, "Samin" };
+    webplus::String data = webplus::json(u);
+    webplus::print(data.c_str()); // {"id":1,"name":"Samin"}
+}
+```
+
+---
+
+## Parsing
+
+### parseJSON(string)
+Parses a JSON string into an internal object. In v0.1, it is mostly used in the context of route handlers and fetch responses.
+
+```cpp
+webplus::fetch("/api/data").then([](webplus::Response r) {
+    auto obj = webplus::parseJSON(r.body());
+    webplus::print("Status: ", obj["status"].as_string());
+});
+```
+
+---
+
+## JSON Object Methods
+
+When dealing with a parsed JSON object:
+
+- `as_string()`: Returns value as a string.
+- `as_int()`: Returns value as an integer.
+- `as_float()`: Returns value as a float.
+- `is_null()`: Checks if the value is null.
+- `operator[]`: Accesses keys (for objects) or indices (for arrays).
+
+---
+
+## Best Practices
+
+- **Explicit Conversion**: Always call `as_string()` or `as_int()` to convert JSON values to Web+ native types.
+- **Buffer Management**: Parsing JSON can allocate many small strings. Use an `Arena` if you are parsing large or frequent JSON payloads.
+
+
+================================================================================
+SECTION: API-REFERENCE/TIMERS.MDX
+================================================================================
+
+---
+title: 'Timers API'
+description: 'Scheduling tasks in the browser runtime'
+---
+
+# Timers API
+
+Schedule code execution using the browser's high-resolution timer.
+
+## Functions
+
+### set_timeout(callback, delay_ms)
+Executes a function once after a specified delay.
+- **Returns**: A timer handle (integer).
+
+### set_interval(callback, delay_ms)
+Repeatedly executes a function at a specified interval.
+- **Returns**: A timer handle (integer).
+
+### clear_timeout(handle)
+Cancels a timer previously set with `set_timeout`.
+
+### clear_interval(handle)
+Cancels a timer previously set with `set_interval`.
+
+---
+
+## Example: Pulsing UI
+
+```cpp
+using namespace webplus::dom;
+
+void main() {
+    Element logo = get("#logo");
+    
+    webplus::set_interval([logo] {
+        static bool bright = true;
+        if (bright) logo.add_class("dim");
+        else logo.remove_class("dim");
+        bright = !bright;
+    }, 500);
+}
+```
+
+---
+
+## Performance Note
+
+Timers in Web+ are mapped to the browser's `setTimeout` and `setInterval`. For high-performance animation loops, consider using `requestAnimationFrame` (planned for v0.2).
+
+
+================================================================================
+SECTION: API-REFERENCE/STREAMS.MDX
+================================================================================
+
+---
+title: 'Streams API'
+description: 'Handling real-time data streams'
+---
+
+# Streams API
+
+The Streams API allows you to process data as it arrives, which is more memory-efficient than waiting for the entire payload.
+
+## Types
+
+### ReadableStream
+A stream of incoming data.
+
+### WritableStream
+A destination for outgoing data.
+
+---
+
+## Usage in v0.1
+
+In the current version, streams are primarily used in the context of the large `fetch` body processing and file uploads.
+
+### Methods
+
+#### stream.pipe(destination)
+Pipes the output of this stream into a `WritableStream`.
+
+#### stream.read_slice(size)
+Reads a chunk of data from the stream.
+
+---
+
+## Example: Processing Image Data
+
+```cpp
+fetch("/large-image.bin").then([](Response r) {
+    ReadableStream s = r.stream();
+    // Process chunks...
+});
+```
+
+---
+
+## Roadmap for v0.2
+Full support for custom `TransformStreams` and byte-level stream manipulation is planned for the next major release.
+
+
+================================================================================
+SECTION: CLI/OVERVIEW.MDX
+================================================================================
+
+---
+title: "CLI Overview"
+description: "Web+ command-line interface for building and running applications"
+---
+
+# CLI Overview
+
+The `webplus` CLI is the primary tool for working with Web+ applications. It provides commands for building, running, serving, formatting, linting, testing, and packaging Web+ code.
+
+## Installation
+
+The CLI is installed as part of the Web+ installation:
+
+```bash
+cd webplus/cli
+npm link
+
+# Verify
+webplus --version
+```
+
+## Usage
+
+```bash
+webplus <command> [options]
+```
+
+## Available Commands
+
+### build
+
+Compile Web+ source to WebAssembly:
+
+```bash
+webplus build <source> [options]
+```
+
+**Options:**
+- `-o, --output <path>` — Output directory (default: `./build`)
+- `--optimize` — Enable optimizations (slower build, faster execution)
+
+**Examples:**
+```bash
+# Build single file
+webplus build main.webplus
+
+# Build directory
+webplus build src/ -o dist
+
+# Build with optimizations
+webplus build src/ --optimize
+```
+
+[Full build documentation →](/cli/build)
+
+### run
+
+Execute compiled WebAssembly:
+
+```bash
+webplus run <target> [options]
+```
+
+**Options:**
+- `--browser` — Run in browser
+- `--server` — Run as WASI server (v0.2+)
+
+**Examples:**
+```bash
+# Run in browser
+webplus run build --browser
+
+# Run as server (planned)
+webplus run build --server
+```
+
+### serve
+
+Development server with hot-reload:
+
+```bash
+webplus serve [source] [options]
+```
+
+**Options:**
+- `-p, --port <port>` — Server port (default: `3000`)
+- `--open` — Open browser automatically
+
+**Examples:**
+```bash
+# Serve current directory
+webplus serve
+
+# Serve specific directory
+webplus serve src --port 8080
+
+# Auto-open browser
+webplus serve src --open
+```
+
+[Full serve documentation →](/cli/serve)
+
+### format
+
+Format Web+ source code:
+
+```bash
+webplus format <files...> [options]
+```
+
+**Options:**
+- `--check` — Check without modifying
+
+**Examples:**
+```bash
+# Format files
+webplus format src/**/*.webplus
+
+# Check formatting
+webplus format src/**/*.webplus --check
+```
+
+Note: Fully implemented in v0.2
+
+### lint
+
+Static analysis and linting:
+
+```bash
+webplus lint <files...> [options]
+```
+
+**Options:**
+- `--fix` — Auto-fix issues
+
+**Examples:**
+```bash
+# Lint files
+webplus lint src/**/*.webplus
+
+# Auto-fix
+webplus lint src/**/*.webplus --fix
+```
+
+Note: Fully implemented in v0.2
+
+### test
+
+Run unit tests:
+
+```bash
+webplus test [pattern] [options]
+```
+
+**Options:**
+- `--watch` — Watch mode
+
+**Examples:**
+```bash
+# Run all tests
+webplus test
+
+# Run specific pattern
+webplus test **/*.test.webplus
+
+# Watch mode
+webplus test --watch
+```
+
+Note: Fully implemented in v0.2
+
+### package
+
+Create distributable module:
+
+```bash
+webplus package <directory> [options]
+```
+
+**Options:**
+- `-o, --output <path>` — Output file
+
+**Examples:**
+```bash
+# Package project
+webplus package . -o dist/module.wasm
+```
+
+Note: Fully implemented in v0.2
+
+## Global Options
+
+All commands support:
+
+```bash
+-h, --help     # Show help
+-v, --version  # Show version
+```
+
+## Configuration
+
+### Project Config
+
+Create `webplus.config.json` in project root:
+
+```json
+{
+  "buildOptions": {
+    "optimize": true,
+    "output": "./dist"
+  },
+  "serveOptions": {
+    "port": 3000
+  }
+}
+```
+
+### Environment Variables
+
+- `WEBPLUS_EMCC_PATH` — Custom Emscripten path
+- `WEBPLUS_BUILD_DIR` — Default build directory
+
+## Exit Codes
+
+- `0` — Success
+- `1` — General error
+- `2` — Invalid arguments
+- `3` — Build error
+- `4` — Runtime error
+
+## Debugging
+
+Enable verbose output:
+
+```bash
+webplus build src --verbose
+```
+
+View generated C++ code:
+
+```bash
+webplus build src -o build
+# Check build/*.cpp files
+```
+
+## Performance
+
+### Build Performance
+
+- **Single file:** ~100-500ms (transpile) + 1-3s (Emscripten)
+- **Large project:** ~500ms-2s (transpile) + 3-10s (Emscripten)
+
+Optimize for faster builds:
+- Use `--optimize` only for production
+- Exclude unnecessary files from build
+
+### Serve Performance
+
+- **Hot-reload:** ~100-500ms per file change
+- **Auto-rebuild:** Watches all `.webplus` files
+
+## See Also
+
+- [Build Command](/cli/build)
+- [Serve Command](/cli/serve)
+- [Quick Start](/quickstart)
+
+
+================================================================================
+SECTION: CLI/COMMANDS.MDX
+================================================================================
+
+---
+title: 'CLI Commands'
+description: 'A comprehensive reference of all available Web+ CLI commands'
+---
+
+# CLI Reference
+
+The `webplus` command-line tool is your central interface for developing, building, and deploying Web+ applications. 
+
+## Command Syntax
+
+```bash
+webplus <command> [arguments] [options]
+```
+
+---
+
+## Core Commands
+
+### build
+Compiles Web+ source files into WebAssembly artifacts.
+
+```bash
+webplus build <source> [options]
+```
+- **Arguments**: `<source>` can be a single `.webplus` file or a directory containing multiple files.
+- **Key Options**:
+  - `-o, --output <dir>`: Target directory for artifacts (Default: `./build`).
+  - `--optimize`: Enables O3 optimizations and dead code elimination. Recommended for production.
+  - `--debug`: Includes debug symbols and enables runtime checks (like bounds checking).
+  - `--target <type>`: Specifies the runtime environment (`browser` or `server`).
+
+[Learn more about building →](/cli/build)
+
+### serve
+Starts a local development server with hot-reloading capabilities.
+
+```bash
+webplus serve [directory] [options]
+```
+- **Arguments**: `[directory]` is the static root to serve (Default: current directory).
+- **Key Options**:
+  - `-p, --port <number>`: Port number (Default: `3000`).
+  - `--open`: Opens the application in the default browser automatically.
+
+[Learn more about the dev server →](/cli/serve)
+
+---
+
+## Utility Commands
+
+### init
+Scaffolds a new Web+ project with common directory structures and configuration.
+
+```bash
+webplus init <project-name>
+```
+- Creates a `src/main.webplus`, `build/`, and `webplus.config.json`.
+
+### format
+Standardizes code style across your files according to the Web+ style guide.
+
+```bash
+webplus format <path>
+```
+- Supports glob patterns: `webplus format "src/**/*.webplus"`.
+
+### lint
+Performs static analysis to find potential bugs or style violations.
+
+```bash
+webplus lint <path>
+```
+- Use `--fix` to automatically resolve simple violations.
+
+### version
+Displays the current version of the Web+ CLI and the underlying transpiler.
+
+```bash
+webplus version
+```
+
+### help
+Displays help text for any command.
+
+```bash
+webplus help build
+```
+
+---
+
+## Global Options
+
+The following flags can be used with any command:
+
+- `-h, --help`: Show help information.
+- `-v, --version`: Show version number.
+- `--verbose`: Enable detailed logging for debugging the toolchain itself.
+- `--no-color`: Disable colored output in the terminal.
+
+---
+
+## Exit Codes
+
+| Code | Meaning |
+| :--- | :--- |
+| `0` | Success |
+| `1` | General CLI error (invalid flags, etc.) |
+| `2` | Transpilation error (syntax error in Web+ code) |
+| `3` | Compilation error (Emscripten failure) |
+| `4` | Filesystem error (Permission denied, etc.) |
+
+
+================================================================================
+SECTION: CLI/BUILD.MDX
+================================================================================
+
+---
+title: 'Build Command'
+description: 'Deep dive into the Web+ build system'
+---
+
+# Building Applications
+
+The `build` command is what turns your human-readable Web+ code into high-performance machine code (WebAssembly). 
+
+## Basic Build
+
+To build a project whose entry point is `main.webplus`:
+
+```bash
+webplus build main.webplus
+```
+
+This will create a `build/` folder containing:
+- `main.wasm`: The compiled binary.
+- `main.js`: The JavaScript bridge that interacts with the browser APIs.
+- `index.html`: A minimal runner that loads the WASM module.
+
+---
+
+## Production Builds
+
+When you're ready to deploy, you should use the `--optimize` flag.
+
+```bash
+webplus build src/main.webplus --optimize --output dist
+```
+
+### What `--optimize` does:
+1.  **LTO (Link Time Optimization)**: Optimizes the code across multiple files.
+2.  **Size Reduction**: Strips out unused standard library functions.
+3.  **Instruction Optimization**: Uses LLVM's O3 level to generate the most efficient WASM instructions possible.
+
+---
+
+## Detailed Options Reference
+
+| Option | Description |
+| :--- | :--- |
+| `-o, --output` | Custom output path. If the directory doesn't exist, it will be created. |
+| `--optimize` | Highly recommended for production. Significantly reduces file size and increases speed. |
+| `--debug` | Keeps source maps and enables `assert()` statements and bounds checking. |
+| `--target` | Set to `browser` (default) for web apps or `server` for WASI-based server apps. |
+| `--emcc-flags` | Pass raw flags directly to the underlying Emscripten compiler. |
+
+---
+
+## The Build Pipeline
+
+Understanding the pipeline helps in debugging complex build failures:
+
+1.  **Transpilation**: The CLI reads your `.webplus` files and converts them into C++ source code. You can see this intermediate code in the output directory if you use the `--verbose` flag.
+2.  **Inclusion**: The CLI injects the necessary parts of the Web+ Standard Library (located in `stdlib/`).
+3.  **WASM Mapping**: High-level primitives like `worker` and `route` are mapped to their low-level C++/JS implementations.
+4.  **Emscripten Invocation**: Finally, the CLI invokes `emcc` to generate the final binary artifacts.
+
+---
+
+## Best Practices
+
+### Multimodal Builds
+For larger projects, don't build every file every time. Organize your code into modules and use a `webplus.config.json` to define build targets:
+
+```json
+{
+  "entry": "src/main.webplus",
+  "output": "dist",
+  "optimize": true,
+  "target": "browser"
+}
+```
+
+### Debugging with `--debug`
+Always use `--debug` during development. It ensures that if your code tries to access an array out of bounds or dereference a null pointer, the WASM runtime will provide a readable stack trace in the browser console instead of simply crashing.
+
+
+================================================================================
+SECTION: CLI/SERVE.MDX
+================================================================================
+
+---
+title: 'Serve Command'
+description: 'Using the Web+ development server'
+---
+
+# Development Server
+
+The `serve` command is designed to provide a "live" development experience. It combines a static file server with an automated rebuild engine.
+
+## Quick Start
+
+```bash
+webplus serve src --open
+```
+
+This command will:
+1.  Scan the `src` directory for `.webplus` files.
+2.  Start a local web server at `http://localhost:3000`.
+3.  Automatically open your browser to that address.
+
+---
+
+## How Hot-Reloading Works
+
+The Web+ dev server uses a high-efficiency file watcher:
+
+1.  **Watch**: It monitors every file in your project directory.
+2.  **Trigger**: When a `.webplus` file is saved, it immediately triggers a background `build`.
+3.  **Halt & Sync**: The browser receives a signal via WebSocket to reload. 
+4.  **Refresh**: The browser refreshes, loading the newly compiled `.wasm` binary.
+
+This cycle typically happens in under **500ms**, allowing for nearly instantaneous UI feedback.
+
+---
+
+## Configuration Options
+
+| Flag | Description | Default |
+| :--- | :--- | :--- |
+| `-p, --port` | The port for the HTTP server. | `3000` |
+| `--open` | Automatically open the browser. | `false` |
+| `--dir` | The directory to serve files from. | Current |
+| `--watch` | Comma-separated list of extra directories to watch. | `src` |
+
+---
+
+## Advanced Usage
+
+### Customizing Ports
+If port 3000 is occupied, you can easily shift:
+
+```bash
+webplus serve . --port 8080
+```
+
+### Serving Multiple Projects
+You can run multiple instances of the server by assigning different ports:
+
+```bash
+# Terminal 1
+webplus serve project_a --port 3001
+
+# Terminal 2
+webplus serve project_b --port 3002
+```
+
+---
+
+## Troubleshooting
+
+### "Port already in use"
+This happens if another server is running. Use `-p` to choose a new port or close the existing server.
+
+### "WASM not loading"
+Ensure you are using `webplus serve` instead of opening the `index.html` file directly in your browser. Browsers block WebAssembly loading from `file://` URLs due to security restrictions (CORS).
+
+### Files not updating
+Ensure the directory you are "serving" is the same directory where your `build` command is outputting its artifacts, or simply use `webplus serve src` which handles the build-serve loop internally.
+
+
+================================================================================
+SECTION: COMPILER/ARCHITECTURE.MDX
+================================================================================
+
+---
+title: "Compiler Architecture"
+description: "How Web+ source becomes WebAssembly"
+---
+
+# Compiler Architecture
+
+The Web+ compiler is currently a **transpiler-based system** (v0.1) designed for rapid development and compatibility with the existing Emscripten ecosystem.
+
+## Compilation Pipeline
+
+The compilation process consists of four main stages:
+
+### 1. Lexical Analysis & Parsing
+- **Input**: `.webplus` source files.
+- **Process**: The parser tokenizes the source and builds an Abstract Syntax Tree (AST).
+- **Tooling**: Built in TypeScript for the node-based CLI.
+
+### 2. AST Transformation
+- The AST is analyzed for type safety and semantic correctness.
+- Web-native primitives (like `route` and `worker`) are expanded into internal representations.
+
+### 3. C++ Code Generation
+- The AST is converted into highly optimized, Emscripten-compatible C++17 code.
+- **Header Injection**: Necessary standard library headers and runtime glue are automatically included.
+
+### 4. Emscripten Compilation
+- **Process**: The generated C++ is piped into `emcc`.
+- **Output**: Binary WebAssembly (`.wasm`), JavaScript glue (`.js`), and optionally an HTML runner.
+
+---
+
+## The Runtime Bridge
+
+Web+ uses a specialized bridge to communicate between the WASM linear memory and the JavaScript environment.
+
+- **ID Tracking**: DOM elements and Promises are assigned IDs to avoid pointer corruption across the boundary.
+- **Trampolines**: C++ callbacks are wrapped in WASM trampolines to allow JS events to trigger Web+ code.
+
+---
+
+## Roadmap: Native LLVM Backend
+
+In future versions (v0.2+), the intermediate C++ step will be removed. The Web+ compiler will target **LLVM IR** directly, allowing for:
+- Faster compilation times.
+- Better optimization of web-specific primitives.
+- Smaller binary sizes without C++ runtime overhead.
+
+
+================================================================================
+SECTION: DEPLOYMENT/BROWSER.MDX
+================================================================================
+
+---
+title: "Browser Deployment"
+description: "Deploying Web+ applications to the web"
+---
+
+# Browser Deployment
+
+Browser deployment is the primary target for Web+ v0.1.
+
+## Build Process
+
+To build for the browser, use the `build` command:
+
+```bash
+webplus build src/main.webplus -o dist
+```
+
+This generates:
+- `main.wasm`: The compiled application logic.
+- `main.js`: Emscripten glue code for loading the WASM.
+- `index.html`: A default runner page.
+
+## Hosting Requirements
+
+### Static Hosting
+Web+ applications can be hosted on any static file server:
+- Vercel
+- GitHub Pages
+- Netlify
+- AWS S3
+
+### MIME Types
+Ensure your server is configured to serve `.wasm` files with the correct MIME type:
+`application/wasm`
+
+## Initialization
+
+If you are using a custom HTML page, you must load the JS glue and initialize the module:
+
+```html
+<script src="main.js"></script>
+<script>
+  Module.onRuntimeInitialized = () => {
+    console.log("Web+ loaded!");
+  };
+</script>
+```
+
+---
+
+## Optimization
+
+For production, always use the `--optimize` flag:
+
+```bash
+webplus build src -o dist --optimize
+```
+
+This enables LLVM optimizations (`-O3`) and minifies the JS glue code.
+
+
+================================================================================
+SECTION: DEPLOYMENT/SERVER.MDX
+================================================================================
+
+---
+title: "Server Deployment"
+description: "Running Web+ on the server via WASI"
+---
+
+# Server Deployment
+
+Web+ supports server-side execution via the WebAssembly System Interface (WASI).
+
+## Target Runtimes
+
+Web+ WASM files can run on any WASI-compliant runtime:
+- **Wasmtime** (Recommended)
+- **Wasmer**
+- **Node.js** (via `--experimental-wasi-unstable-preview1`)
+
+## Building for Server
+
+```bash
+webplus build main.webplus --target server -o build
+```
+
+## Running
+
+```bash
+# Using Wasmtime
+wasmtime build/main.wasm
+
+# Using the Web+ CLI
+webplus run build --server
+```
+
+---
+
+## Server-Specific Features
+
+- **File I/O**: Access the host filesystem via WASI virtualization.
+- **Environment Variables**: Read configurations from the host.
+- **Networking**: Experimental support for sockets in v0.1.
+
+---
+
+## Cloud Deployment
+
+You can deploy Web+ servers to "WASM-native" clouds:
+- **Fermyon Spin**
+- **Cloudflare Workers** (with WASM)
+- **Fastly Compute@Edge**
+
+
+================================================================================
+SECTION: DEPLOYMENT/EDGE.MDX
+================================================================================
+
+---
+title: "Edge Deployment"
+description: "Running Web+ at the network edge"
+---
+
+# Edge Deployment
+
+Web+ is uniquely suited for Edge computing due to its fast startup times and low memory footprint.
+
+## Edge Runtimes
+
+- **Cloudflare Workers**: Use Web+ to build high-performance handlers.
+- **Vercel Edge Functions**: Deploy latency-critical logic.
+- **Supabase Edge Functions**: Run backend logic closer to your users.
+
+## Why Web+ for Edge?
+
+1. **Cold Start**: WASM modules start in microseconds compared to milliseconds for Node.js.
+2. **Security**: The WASM sandbox provides strong isolation.
+3. **Footprint**: Compiled binaries are significantly smaller than equivalent containers or JS bundles.
+
+---
+
+## Example Handler
+
+```cpp
+route GET "/edge-ping" -> Response {
+    return Response::text("Pong from the edge!");
+}
+```
+
+## Deployment steps
+
+1. Build for server target.
+2. Upload `.wasm` to your edge provider.
+3. Use the provider's JS glue (or Web+'s generated glue) to handle requests.
+
+
+================================================================================
+SECTION: VSCODE/EXTENSION.MDX
+================================================================================
+
+---
+title: "VS Code Extension"
+description: "Professional development experience for Web+"
+---
+
+# VS Code Extension
+
+The Web+ VS Code extension provides a comprehensive IDE experience for building systems-level web applications.
+
+## Features
+
+### Syntax Highlighting
+Full semantic highlighting for `.webplus` files, including:
+- Keywords (`route`, `worker`, `alloc`, etc.)
+- Types and Structs
+- Web primitives
+- Preprocessor directives
+
+### IntelliSense
+Context-aware completions for the Web+ Standard Library and your own code.
+
+### Diagnostics
+Real-time error reporting and linting as you type.
+
+### Build Integration
+Easy access to `webplus build` and `webplus serve` directly from the command palette.
+
+## Installation
+
+1. Navigate to the `vscode-extension` directory in the Web+ repository.
+2. Build the extension:
+   ```bash
+   npm install
+   npm run build
+   ```
+3. Install the generated VSIX file into VS Code:
+   ```bash
+   code --install-extension webplus-0.1.0.vsix
+   ```
+
+## Configuration
+
+You can configure the extension in your `settings.json`:
+
+```json
+{
+  "webplus.compilerPath": "/path/to/webplus-cli",
+  "webplus.formatOnSave": true,
+  "webplus.lintOnChange": true
+}
+```
+
+---
+
+## Roadmap
+
+Upcoming features for the VS Code extension:
+- **Debugger Integration**: Attach to WASM processes directly.
+- **Project Scaffolding**: Command to create new Web+ projects from templates.
+- **Resource Profiler**: Live view of WASM memory and performance.
+
+
+================================================================================
+SECTION: TUTORIALS/HELLO-WORLD.MDX
+================================================================================
+
+---
+title: 'Hello World'
+description: 'Build your first Web+ application'
+---
+
+# Hello World Tutorial
+
+In this tutorial, we will create a simple "Hello World" application that demonstrates the core workflow of Web+ and basic DOM manipulation.
+
+## 1. Create your source file
+
+Create a new directory for your project and create a file named `main.webplus`:
+
+```webplus
+// Web+ Hello World
+void main() {
+    // 1. Get a handle to the DOM element with id "app"
+    dom::Element app = dom::get("#app");
+    
+    // 2. Set its text content
+    app.text("Hello, Web+! This is running in WebAssembly.");
+}
+```
+
+## 2. Prepare an HTML entry point
+
+Web+ needs an HTML file to host the WebAssembly module. While the `build` command can generate one, let's create a custom `index.html` to understand how it works:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My First Web+ App</title>
+</head>
+<body>
+    <div id="app">Loading...</div>
+    <!-- The compiled JS glue will be named main.js by default -->
+    <script src="main.js"></script>
+</body>
+</html>
+```
+
+## 3. Build the project
+
+Open your terminal and run the build command:
+
+```bash
+webplus build main.webplus -o build
+```
+
+The CLI will:
+1.  Verify your Web+ syntax.
+2.  Transpile and compile your code.
+3.  Output `main.js` and `main.wasm` into the `build/` folder.
+
+## 4. Run it!
+
+Start the development server to see your application in action:
+
+```bash
+webplus serve build --open
+```
+
+You should see "**Hello, Web+! This is running in WebAssembly.**" replacing the "Loading..." text on your screen.
+
+---
+
+## What did we learn?
+
+1.  **Selection**: `dom::get` is the primary way to interact with existing elements on a page.
+2.  **Manipulation**: `app.text()` is a high-performance method that safely updates the DOM.
+3.  **WASM Execution**: Your code isn't being interpreted; it's being executed by the browser's WebAssembly engine at near-native speeds.
+
+## Next Steps
+
+Now that you've mastered the basics, try the [DOM Manipulation Tutorial](/tutorials/dom-manipulation) to learn how to create elements and handle events!
+
+
+================================================================================
+SECTION: TUTORIALS/DOM-MANIPULATION.MDX
+================================================================================
+
+---
+title: 'DOM Manipulation'
+description: 'Interacting with the web page dynamically'
+---
+
+# DOM Manipulation Tutorial
+
+Web+ makes it easy to build dynamic interfaces by providing a type-safe interface for the browser's Document Object Model (DOM).
+
+## Dynamic Element Creation
+
+Instead of hardcoding every HTML element, you can create them on the fly:
+
+```webplus
+void main() {
+    dom::Element container = dom::get("#app");
+    
+    // Create a new heading
+    dom::Element header = dom::createElement("h1");
+    header.text("Interactive Dashboard");
+    
+    // Append it to our container
+    container.append(header);
+}
+```
+
+---
+
+## Styling and Classes
+
+You can modify an element's appearance by adding or removing CSS classes:
+
+```webplus
+void main() {
+    dom::Element banner = dom::get(".banner");
+    
+    // Toggle a class
+    if (banner.has_class("hidden")) {
+        banner.remove_class("hidden");
+        banner.add_class("visible");
+    }
+    
+    // Set direct style attributes
+    banner.set_attribute("style", "color: #22d3ee;");
+}
+```
+
+---
+
+## Event Handling
+
+Interactivity is driven by events. Web+ supports the `on()` method for binding functions to element events:
+
+```webplus
+void main() {
+    dom::Element btn = dom::get("#click-me");
+    
+    // Handle a click event using a lambda function
+    btn.on("click", [] {
+        webplus::print("Button was clicked!");
+        dom::get("#output").text("Action completed.");
+    });
+}
+```
+
+---
+
+## Building a Dynamic List
+
+Let's combine these concepts into a practical example:
+
+```webplus
+void main() {
+    dom::Element app = dom::get("#app");
+    dom::Element list = dom::createElement("ul");
+    
+    // Create items dynamically
+    for (int i = 1; i <= 5; i++) {
+        dom::Element item = dom::createElement("li");
+        item.text("List Item #" + toString(i));
+        
+        // Add some styling based on index
+        if (i % 2 == 0) {
+            item.add_class("even-item");
+        }
+        
+        list.append(item);
+    }
+    
+    app.append(list);
+}
+```
+
+---
+
+## Performance Considerations
+
+### JS Bridge Overhead
+Every call to `dom::get` or `dom::createElement` involves a small amount of overhead as the WASM runtime communicates with the browser's JavaScript engine. 
+
+**Tip**: Cache your element handles instead of re-getting them inside a loop:
+
+```webplus
+// POOR PERFORMANCE
+for(int i = 0; i < 100; i++) {
+    dom::get("#output").text(toString(i));
+}
+
+// OPTIMIZED PERFORMANCE
+dom::Element output = dom::get("#output");
+for(int i = 0; i < 100; i++) {
+    output.text(toString(i));
+}
+```
+
+## Next Steps
+Now that you can interact with the user, learn how to handle background tasks in the [Concurrency Tutorial](/tutorials/concurrency)!
+
+
+================================================================================
+SECTION: TUTORIALS/CONCURRENCY.MDX
+================================================================================
+
+---
+title: 'Concurrency'
+description: 'Running background tasks with Web Workers'
+---
+
+# Concurrency Tutorial
+
+WebAssembly allows for multi-threaded execution in the browser via Web Workers. Web+ abstracts this complexity into a simple `worker` primitive.
+
+## Why use Workers?
+
+The browser's main thread handles both the UI and JavaScript execution. If you run a heavy calculation on the main thread, the entire page will freeze. Workers let you run these tasks in the background, keeping the UI responsive.
+
+## 1. Defining a Background Task
+
+In this tutorial, we'll calculate a large Fibonacci number. Because the recursive implementation is computationally expensive, it's a perfect candidate for a worker.
+
+```webplus
+int fib(int n) {
+    if (n <= 1) return n;
+    return fib(n - 1) + fib(n - 2);
+}
+```
+
+---
+
+## 2. Spawning the Worker
+
+Use `worker::spawn` and pass a lambda function containing the code you want to run:
+
+```webplus
+void main() {
+    dom::Element status = dom::get("#status");
+    status.text("Starting calculation...");
+
+    // Start the worker
+    worker w = worker::spawn([] {
+        int res = fib(42);
+        return res;
+    });
+}
+```
+
+---
+
+## 3. Retaining the Result
+
+To get the result back from the worker, use the `join()` method. This will wait for the thread to complete and return the value:
+
+```webplus
+void main() {
+    worker w = worker::spawn([] { return fib(42); });
+
+    // Wait and get the result
+    int finalResult = w.join();
+    
+    dom::get("#output").text("The answer is: " + toString(finalResult));
+}
+```
+
+---
+
+## 4. Parallel Workers
+
+You can even run multiple workers at once to utilize multiple CPU cores:
+
+```webplus
+void main() {
+    worker w1 = worker::spawn([] { return fib(35); });
+    worker w2 = worker::spawn([] { return fib(36); });
+
+    // Both are running in parallel now
+    int r1 = w1.join();
+    int r2 = w2.join();
+    
+    webplus::print("Sum of tasks: ", r1 + r2);
+}
+```
+
+---
+
+## Best Practices
+
+### Blocking vs. Non-blocking
+The `join()` method is **blocking**. If you call `join()` on the main thread, the UI will still freeze until the worker is done.
+
+**Tip**: For high-performance UIs, consider using a messaging pattern (coming in v0.2) or only `join()` when you are absolutely sure the worker has finished (via polling or event callbacks).
+
+### Memory Safety
+Remember that variables declared inside a worker are private to that thread. If you need to share large amounts of data, use heap-allocated pointers, but be careful of race conditions!
+
+## Next Steps
+Now that your app is fast and responsive, learn how to manage its resources in the [Memory Management Tutorial](/tutorials/memory-management).
+
+
+================================================================================
+SECTION: TUTORIALS/MEMORY-MANAGEMENT.MDX
+================================================================================
+
+---
+title: 'Memory Management'
+description: 'Mastering explicit memory control in Web+'
+---
+
+# Memory Management Tutorial
+
+One of the most powerful features of Web+ is explicit memory control. Unlike JavaScript, which uses a garbage collector, Web+ lets you decide exactly when memory is used and when it is released.
+
+## 1. Stack Allocation (Automatic)
+
+Most variables you create inside a function are stored on the **Stack**. This memory is automatically managed for you.
+
+```webplus
+void process() {
+    int x = 100;         // Stack allocated
+    float buffer[10];    // Stack allocated
+    
+    // x and buffer are automatically destroyed when 'process' ends
+}
+```
+
+---
+
+## 2. Heap Allocation (Manual)
+
+If you need data to persist beyond the current function, or if you don't know the size of the data until runtime, you must use the **Heap**.
+
+Use the `webplus::alloc<T>(count)` function to reserve memory.
+
+```webplus
+void main() {
+    // 1. Allocate space for 100 integers
+    int* data = webplus::alloc<int>(100);
+    
+    // 2. Use the memory
+    data[0] = 5;
+    data[99] = 10;
+    
+    // 3. YOU MUST release the memory!
+    webplus::free_ptr(data);
+}
+```
+
+---
+
+## 3. The Lifecycle of a String
+
+Strings in Web+ are heap-allocated objects. You must explicitly clear them if you create them dynamically.
+
+```webplus
+void main() {
+    webplus::String name = "Web+ Build";
+    name.append(" v0.1");
+    
+    webplus::print(name.c_str());
+    
+    // Release the internal buffer
+    name.clear();
+}
+```
+
+---
+
+## 4. Advanced: Using an Arena
+
+If your application needs to make many small, short-lived allocations (for example, during a single draw frame in a game), using individual `alloc`/`free` calls can be slow. An **Arena** solves this by letting you free everything at once.
+
+```webplus
+void run_frame() {
+    // Create an arena for this frame
+    webplus::Arena<char> frameArena(1024 * 10); // 10KB
+    
+    // Allocate small buffers
+    char* temp1 = frameArena.allocate(100);
+    char* temp2 = frameArena.allocate(250);
+    
+    // Process...
+    
+    // No need to free individual pointers. 
+    // All memory is reclaimed when frameArena goes out of scope or is reset().
+}
+```
+
+---
+
+## The Golden Rules of Memory
+
+1.  **Every `alloc` needs a `free_ptr`**: Forgetting to free memory creates a "Memory Leak," which can eventually crash the user's browser tab.
+2.  **Never use a pointer after calling `free_ptr`**: This is called a "Dangling Pointer" and results in undefined behavior.
+3.  **Prefer the Stack**: Whenever possible, use local stack variables. They are faster and safer.
+4.  **Use `--debug`**: Always build with the `--debug` flag during development. It enables a specialized runtime that will warn you about bounds violations or invalid memory access.
+
+```bash
+webplus build main.webplus --debug
+```
+
+## Next Steps
+Ready to build something more complex? Check out the [Server API Tutorial](/tutorials/server-api) to learn about networking.
+
+
+================================================================================
+SECTION: TUTORIALS/SERVER-API.MDX
+================================================================================
+
+---
+title: 'Server API'
+description: 'Building backend services with Web+ routes'
+---
+
+# Server API Tutorial
+
+Web+ isn't just for the browser. With the `route` primitive, you can build high-performance microservices and APIs that run on WASI-compatible servers.
+
+## 1. Defining a Simple Route
+
+A route handles a specific HTTP method and path. Let's create a basic health-check endpoint:
+
+```webplus
+route GET "/health" -> Response {
+    return json({ "status": "online", "version": "v0.1" });
+}
+```
+
+---
+
+## 2. Using URL Parameters
+
+Standard APIs often need to extract IDs from the URL. In Web+, you use the `:` prefix in the path and the `param()` function to extract the value.
+
+```webplus
+route GET "/api/user/:id" -> Response {
+    // Extract ID (comes in as an int by default)
+    int userId = param("id");
+    
+    // Return a structured response
+    return json({ 
+        "id": userId,
+        "username": "developer_99" 
+    });
+}
+```
+
+---
+
+## 3. Returning Structs as JSON
+
+Web+ makes it easy to serialize complex data structures. Simply define a `struct` and pass a pointer to it into the `json()` function:
+
+```webplus
+struct Project {
+    int id;
+    string title;
+    bool isActive;
+};
+
+route GET "/api/project" -> Response {
+    // 1. Allocate a struct on the heap
+    Project* p = alloc<Project>(1);
+    
+    // 2. Set values
+    p->id = 505;
+    p->title = "Nebula Engine";
+    p->isActive = true;
+    
+    // 3. Serialized into a JSON Response
+    Response res = json(p);
+    
+    // 4. CLEANUP (Always free heap memory!)
+    free(p);
+    
+    return res;
+}
+```
+
+---
+
+## 4. Handling POST Requests
+
+For creating or updating data, use the `POST` method:
+
+```webplus
+route POST "/api/submit" -> Response {
+    // In v0.1, you can access the raw request body via request::body()
+    // Validation logic goes here...
+    
+    return json({ "success": true });
+}
+```
+
+---
+
+## 5. Deployment
+
+To compile your code for a server environment, you must use the `--target server` flag:
+
+```bash
+webplus build main.webplus --target server -o build
+```
+
+This will generate a `.wasm` file optimized for runtimes like **Wasmtime** or **Wasmer**. You can run it locally with:
+
+```bash
+webplus run build --server
+```
+
+---
+
+## Key Terms
+
+- **Route**: A mapping between a URL path and a block of code.
+- **Response**: The object returned by a route, containing headers, status code, and body.
+- **JSON Serialization**: The process of turning Web+ structs into text strings that other languages (like JS or Python) can understand.
+
+---
+
+## Summary
+You've now learned how to build a full-stack experience using Web+. From interactive UIs in the browser to robust APIs on the server, Web+ provides a unified, performance-first language for the entire web ecosystem.
+
+
+================================================================================
+APPENDIX: BEST PRACTICES SUMMARY
+================================================================================
+
+
+1.  NO GC: Never assume an object will be cleaned up automatically. Use free_ptr.
+2.  STDLIB_INIT: Always call webplus::stdlib_init() at the entry of main.
+3.  DOM CACHING: Don't call dom::get("#id") inside a tight while loop. Cache it.
+4.  UI BLOCKING: Calculate heavy math in worker::spawn, never on the main thread.
+5.  C-STRINGS: Use .c_str() for webplus::String when low-level C interop is needed.
+6.  NULL CHECKS: Check if (elem.is_valid()) before using a dom::Element.

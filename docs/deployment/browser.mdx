@@ -1,0 +1,59 @@
+---
+title: "Browser Deployment"
+description: "Deploying Web+ applications to the web"
+---
+
+# Browser Deployment
+
+Browser deployment is the primary target for Web+ v0.1.
+
+## Build Process
+
+To build for the browser, use the `build` command:
+
+```bash
+webplus build src/main.webplus -o dist
+```
+
+This generates:
+- `main.wasm`: The compiled application logic.
+- `main.js`: Emscripten glue code for loading the WASM.
+- `index.html`: A default runner page.
+
+## Hosting Requirements
+
+### Static Hosting
+Web+ applications can be hosted on any static file server:
+- Vercel
+- GitHub Pages
+- Netlify
+- AWS S3
+
+### MIME Types
+Ensure your server is configured to serve `.wasm` files with the correct MIME type:
+`application/wasm`
+
+## Initialization
+
+If you are using a custom HTML page, you must load the JS glue and initialize the module:
+
+```html
+<script src="main.js"></script>
+<script>
+  Module.onRuntimeInitialized = () => {
+    console.log("Web+ loaded!");
+  };
+</script>
+```
+
+---
+
+## Optimization
+
+For production, always use the `--optimize` flag:
+
+```bash
+webplus build src -o dist --optimize
+```
+
+This enables LLVM optimizations (`-O3`) and minifies the JS glue code.

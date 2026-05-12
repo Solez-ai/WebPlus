@@ -1,0 +1,15 @@
+{
+    "name": "@webplus/runtime",
+    "version": "0.1.0",
+    "description": "Browser runtime for Web+",
+    "main": "dist/index.js",
+    "module": "dist/index.mjs",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsup src/index.ts --format cjs,esm --dts --clean"
+    },
+    "devDependencies": {
+        "tsup": "^8.0.2",
+        "typescript": "^5.3.3"
+    }
+}

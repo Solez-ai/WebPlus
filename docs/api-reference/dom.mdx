@@ -1,0 +1,85 @@
+---
+title: 'DOM API'
+description: 'Interacting with the browser Document Object Model'
+---
+
+# DOM API
+
+In the browser runtime, Web+ provides first-class access to the DOM via the `webplus::dom` namespace.
+
+## Methods
+
+### dom::get(selector)
+Queries the DOM for the first element matching the CSS selector.
+- **Returns**: `dom::Element`
+
+### dom::getElementById(id)
+Finds an element by its ID attribute.
+- **Returns**: `dom::Element`
+
+### dom::createElement(tagName)
+Creates a new DOM element with the specified tag name.
+- **Returns**: `dom::Element`
+
+---
+
+## Element Class
+
+The `Element` class is a handle to a real DOM element managed by the JavaScript bridge.
+
+### Methods
+
+#### element.is_valid()
+Returns `true` if the element handle points to a valid DOM node.
+
+#### element.text(value) / element.text()
+- **Setter**: Sets the text content of the element.
+- **Getter**: Retrieves the current text content.
+
+#### element.html(value)
+Sets the inner HTML of the element. Use with caution to avoid XSS.
+
+#### element.set_attribute(name, value)
+Sets an attribute on the element (e.g., `id`, `src`, `href`).
+
+#### element.add_class(className)
+Adds a CSS class to the element.
+
+#### element.remove_class(className)
+Removes a CSS class from the element.
+
+#### element.append(child)
+Appends another `Element` as a child of this element.
+
+#### element.remove()
+Removes the element from the DOM.
+
+---
+
+## Example: Building a List
+
+```cpp
+using namespace webplus::dom;
+
+void main() {
+    Element app = get("#app");
+    
+    if (app.is_valid()) {
+        Element list = createElement("ul");
+        
+        for (int i = 0; i < 3; i++) {
+            Element item = createElement("li");
+            item.text("Item " + toString(i));
+            list.append(item);
+        }
+        
+        app.append(list);
+    }
+}
+```
+
+---
+
+## Architecture Note
+
+Web+ uses an **ID-based tracking system** for DOM elements. Instead of passing raw memory pointers to JavaScript, Web+ assigns an integer ID to each element tracked by the runtime. This ensures memory safety across the WASM/JS boundary and prevents memory leaks related to the DOM.

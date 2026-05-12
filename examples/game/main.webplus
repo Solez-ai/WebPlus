@@ -1,0 +1,404 @@
+struct Vector2 {
+    float x;
+    float y;
+};
+
+struct Player {
+    Vector2 position;
+    Vector2 velocity;
+    float radius;
+    int score;
+    float shield;
+    float speedBoost;
+};
+
+struct Enemy {
+    Vector2 position;
+    Vector2 velocity;
+    float radius;
+    bool active;
+    int type; // 0: normal, 1: fast, 2: tank
+};
+
+struct Particle {
+    Vector2 position;
+    Vector2 velocity;
+    float life;
+    bool active;
+    string color;
+};
+
+struct PowerUp {
+    Vector2 position;
+    float life;
+    int type; // 0: shield, 1: speed
+    bool active;
+};
+
+Player* player;
+Enemy* enemies;
+Particle* particles;
+PowerUp* powerUps;
+
+int enemyCount = 12;
+int maxEnemies = 150;
+int maxParticles = 200;
+int maxPowerUps = 5;
+
+bool gameRunning = false;
+int frameCount = 0;
+
+dom::Element canvas;
+int canvasWidth = 1000;
+int canvasHeight = 700;
+
+void initGame() {
+    player = alloc<Player>(1);
+    player->position.x = canvasWidth / 2.0;
+    player->position.y = canvasHeight / 2.0;
+    player->velocity.x = 0.0;
+    player->velocity.y = 0.0;
+    player->radius = 18.0;
+    player->score = 0;
+    player->shield = 0;
+    player->speedBoost = 0;
+    
+    enemies = alloc<Enemy>(maxEnemies);
+    for (int i = 0; i < maxEnemies; i++) enemies[i].active = false;
+    for (int i = 0; i < enemyCount; i++) {
+        spawnEnemy(&enemies[i]);
+    }
+
+    particles = alloc<Particle>(maxParticles);
+    for (int i = 0; i < maxParticles; i++) particles[i].active = false;
+
+    powerUps = alloc<PowerUp>(maxPowerUps);
+    for (int i = 0; i < maxPowerUps; i++) powerUps[i].active = false;
+    
+    canvas = dom::get("#gameCanvas");
+    gameRunning = true;
+}
+
+void spawnEnemy(Enemy* enemy) {
+    enemy->position.x = randomFloat(0, canvasWidth);
+    enemy->position.y = -50.0;
+    
+    int type = (int)randomFloat(0, 3);
+    enemy->type = type;
+    
+    if (type == 0) { // Normal
+        enemy->velocity.x = randomFloat(-1.5, 1.5);
+        enemy->velocity.y = randomFloat(2.0, 4.0);
+        enemy->radius = randomFloat(12.0, 18.0);
+    } else if (type == 1) { // Fast
+        enemy->velocity.x = randomFloat(-3.0, 3.0);
+        enemy->velocity.y = randomFloat(5.0, 8.0);
+        enemy->radius = 8.0;
+    } else { // Tank
+        enemy->velocity.x = randomFloat(-0.5, 0.5);
+        enemy->velocity.y = randomFloat(1.0, 2.0);
+        enemy->radius = 30.0;
+    }
+    
+    enemy->active = true;
+}
+
+void spawnParticle(float x, float y, string color) {
+    for (int i = 0; i < maxParticles; i++) {
+        if (!particles[i].active) {
+            particles[i].position.x = x;
+            particles[i].position.y = y;
+            particles[i].velocity.x = randomFloat(-5.0, 5.0);
+            particles[i].velocity.y = randomFloat(-5.0, 5.0);
+            particles[i].life = 1.0;
+            particles[i].active = true;
+            particles[i].color = color;
+            return;
+        }
+    }
+}
+
+void spawnPowerUp() {
+    for (int i = 0; i < maxPowerUps; i++) {
+        if (!powerUps[i].active) {
+            powerUps[i].position.x = randomFloat(50, canvasWidth - 50);
+            powerUps[i].position.y = randomFloat(50, canvasHeight - 50);
+            powerUps[i].type = (int)randomFloat(0, 2);
+            powerUps[i].life = 10.0; // 10 seconds
+            powerUps[i].active = true;
+            return;
+        }
+    }
+}
+
+worker gameLoop;
+worker physicsWorker;
+
+void startGame() {
+    dom::get("#startButton").text("SURVIVE!");
+    dom::get("#score").text("SCORE: 0");
+    
+    initGame();
+    
+    physicsWorker = worker::spawn([] {
+        while (gameRunning) {
+            updatePhysics();
+            checkCollisions();
+            sleep(16);
+        }
+        return 0;
+    });
+    
+    gameLoop = worker::spawn([] {
+        while (gameRunning) {
+            render();
+            frameCount++;
+            sleep(16);
+        }
+        return 0;
+    });
+}
+
+void updatePhysics() {
+    float moveSpeed = 0.6;
+    if (player->speedBoost > 0) moveSpeed = 1.2;
+
+    player->position.x += player->velocity.x;
+    player->position.y += player->velocity.y;
+    
+    player->velocity.x *= 0.92;
+    player->velocity.y *= 0.92;
+
+    if (player->shield > 0) player->shield -= 0.01;
+    if (player->speedBoost > 0) player->speedBoost -= 0.01;
+    
+    if (player->position.x < player->radius) player->position.x = player->radius;
+    if (player->position.x > canvasWidth - player->radius) 
+        player->position.x = canvasWidth - player->radius;
+    if (player->position.y < player->radius) player->position.y = player->radius;
+    if (player->position.y > canvasHeight - player->radius) 
+        player->position.y = canvasHeight - player->radius;
+    
+    for (int i = 0; i < maxEnemies; i++) {
+        if (enemies[i].active) {
+            enemies[i].position.x += enemies[i].velocity.x;
+            enemies[i].position.y += enemies[i].velocity.y;
+            
+            if (enemies[i].position.y > canvasHeight + 50) {
+                spawnEnemy(&enemies[i]);
+            }
+            
+            if (enemies[i].position.x < 0 || enemies[i].position.x > canvasWidth) {
+                enemies[i].velocity.x *= -1;
+            }
+        }
+    }
+
+    for (int i = 0; i < maxParticles; i++) {
+        if (particles[i].active) {
+            particles[i].position.x += particles[i].velocity.x;
+            particles[i].position.y += particles[i].velocity.y;
+            particles[i].life -= 0.02;
+            if (particles[i].life <= 0) particles[i].active = false;
+        }
+    }
+
+    for (int i = 0; i < maxPowerUps; i++) {
+        if (powerUps[i].active) {
+            powerUps[i].life -= 0.016;
+            if (powerUps[i].life <= 0) powerUps[i].active = false;
+        }
+    }
+
+    if (frameCount % 300 == 0) spawnPowerUp();
+}
+
+void checkCollisions() {
+    for (int i = 0; i < maxEnemies; i++) {
+        if (enemies[i].active) {
+            float dx = player->position.x - enemies[i].position.x;
+            float dy = player->position.y - enemies[i].position.y;
+            float distance = sqrt(dx * dx + dy * dy);
+            float minDistance = player->radius + enemies[i].radius;
+            
+            if (distance < minDistance) {
+                if (player->shield > 0) {
+                    player->shield = 0;
+                    enemies[i].active = false;
+                    for(int p=0; p<15; p++) spawnParticle(enemies[i].position.x, enemies[i].position.y, "#ffffff");
+                    spawnEnemy(&enemies[i]);
+                } else {
+                    gameOver();
+                    break;
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < maxPowerUps; i++) {
+        if (powerUps[i].active) {
+            float dx = player->position.x - powerUps[i].position.x;
+            float dy = player->position.y - powerUps[i].position.y;
+            float distance = sqrt(dx * dx + dy * dy);
+            
+            if (distance < player->radius + 15) {
+                if (powerUps[i].type == 0) player->shield = 5.0;
+                else player->speedBoost = 5.0;
+                
+                powerUps[i].active = false;
+                for(int p=0; p<10; p++) spawnParticle(powerUps[i].position.x, powerUps[i].position.y, "#fbbf24");
+            }
+        }
+    }
+}
+
+void render() {
+    string svg = "<svg width='" + toString(canvasWidth) + "' height='" + toString(canvasHeight) + "' style='background: radial-gradient(circle, #1e293b 0%, #0f172a 100%)'>";
+    
+    // Grid
+    for(int x=0; x<canvasWidth; x+=100) {
+        svg += "<line x1='" + toString(x) + "' y1='0' x2='" + toString(x) + "' y2='" + toString(canvasHeight) + "' stroke='#334155' stroke-width='0.5'/>";
+    }
+    for(int y=0; y<canvasHeight; y+=100) {
+        svg += "<line x1='0' y1='" + toString(y) + "' x2='" + toString(canvasWidth) + "' y2='" + toString(y) + "' stroke='#334155' stroke-width='0.5'/>";
+    }
+
+    // Power Ups
+    for (int i = 0; i < maxPowerUps; i++) {
+        if (powerUps[i].active) {
+            string color = powerUps[i].type == 0 ? "#3b82f6" : "#f59e0b";
+            svg += "<circle cx='" + toString(powerUps[i].position.x) + "' cy='" + toString(powerUps[i].position.y) + 
+                   "' r='15' fill='" + color + "' fill-opacity='0.6' stroke='" + color + "' stroke-width='2'/>";
+            svg += "<circle cx='" + toString(powerUps[i].position.x) + "' cy='" + toString(powerUps[i].position.y) + 
+                   "' r='" + toString(15.0 + sin(frameCount * 0.1) * 5.0) + "' fill='none' stroke='" + color + "' stroke-opacity='0.3'/>";
+        }
+    }
+
+    // Particles
+    for (int i = 0; i < maxParticles; i++) {
+        if (particles[i].active) {
+            svg += "<circle cx='" + toString(particles[i].position.x) + "' cy='" + toString(particles[i].position.y) + 
+                   "' r='" + toString(particles[i].life * 4.0) + "' fill='" + particles[i].color + "' fill-opacity='" + toString(particles[i].life) + "'/>";
+        }
+    }
+
+    // Player
+    string pColor = "#22d3ee";
+    if (player->shield > 0) pColor = "#3b82f6";
+    if (player->speedBoost > 0) pColor = "#f59e0b";
+
+    svg += "<circle cx='" + toString(player->position.x) + "' cy='" + toString(player->position.y) + 
+           "' r='" + toString(player->radius) + "' fill='" + pColor + "' style='filter: drop-shadow(0 0 10px " + pColor + ")'/>";
+    
+    if (player->shield > 0) {
+        svg += "<circle cx='" + toString(player->position.x) + "' cy='" + toString(player->position.y) + 
+               "' r='" + toString(player->radius + 8.0) + "' fill='none' stroke='#3b82f6' stroke-width='2' stroke-dasharray='5,5'/>";
+    }
+
+    // Enemies
+    for (int i = 0; i < maxEnemies; i++) {
+        if (enemies[i].active) {
+            string eColor = "#ef4444";
+            if (enemies[i].type == 1) eColor = "#f43f5e";
+            if (enemies[i].type == 2) eColor = "#991b1b";
+
+            svg += "<circle cx='" + toString(enemies[i].position.x) + "' cy='" + toString(enemies[i].position.y) + 
+                   "' r='" + toString(enemies[i].radius) + "' fill='" + eColor + "' style='filter: drop-shadow(0 0 5px " + eColor + ")'/>";
+        }
+    }
+    
+    svg += "</svg>";
+    canvas.html(svg);
+    
+    if (frameCount % 60 == 0) {
+        player->score++;
+        dom::get("#score").text("SCORE: " + toString(player->score));
+        
+        if (player->score % 5 == 0 && enemyCount < maxEnemies) {
+            for(int k=0; k<2; k++) {
+                for(int j=0; j<maxEnemies; j++) {
+                    if(!enemies[j].active) {
+                        spawnEnemy(&enemies[j]);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void gameOver() {
+    gameRunning = false;
+    for(int i=0; i<30; i++) spawnParticle(player->position.x, player->position.y, "#22d3ee");
+    render(); // Final render
+
+    dom::get("#gameOverScore").text("FINAL SCORE: " + toString(player->score));
+    dom::get("#gameOver").style.display = "flex";
+    dom::get("#startButton").text("TRY AGAIN");
+    
+    physicsWorker.detach();
+    gameLoop.detach();
+}
+
+void restart() {
+    dom::get("#gameOver").style.display = "none";
+    initGame();
+    startGame();
+}
+
+float randomFloat(float min, float max) {
+    return min + (max - min) * (rand() / (float)RAND_MAX);
+}
+
+string toString(float value) {
+    char buffer[64];
+    sprintf(buffer, "%.2f", value);
+    return string(buffer);
+}
+
+void main() {
+    dom::Element startBtn = dom::get("#startButton");
+    dom::Element restartBtn = dom::get("#restartButton");
+    
+    startBtn.on("click", [] {
+        if (!gameRunning) startGame();
+    });
+    
+    restartBtn.on("click", [] {
+        restart();
+    });
+    
+    bool keys[4] = {false, false, false, false};
+    
+    dom::get("body").on("keydown", [&keys](Event e) {
+        if (e.key == "ArrowLeft" || e.key == "a") keys[0] = true;
+        if (e.key == "ArrowRight" || e.key == "d") keys[1] = true;
+        if (e.key == "ArrowUp" || e.key == "w") keys[2] = true;
+        if (e.key == "ArrowDown" || e.key == "s") keys[3] = true;
+    });
+    
+    dom::get("body").on("keyup", [&keys](Event e) {
+        if (e.key == "ArrowLeft" || e.key == "a") keys[0] = false;
+        if (e.key == "ArrowRight" || e.key == "d") keys[1] = false;
+        if (e.key == "ArrowUp" || e.key == "w") keys[2] = false;
+        if (e.key == "ArrowDown" || e.key == "s") keys[3] = false;
+    });
+    
+    worker inputWorker = worker::spawn([&keys] {
+        while (true) {
+            if (gameRunning && player) {
+                float acc = 0.5;
+                if (player->speedBoost > 0) acc = 1.0;
+
+                if (keys[0]) player->velocity.x -= acc;
+                if (keys[1]) player->velocity.x += acc;
+                if (keys[2]) player->velocity.y -= acc;
+                if (keys[3]) player->velocity.y += acc;
+            }
+            sleep(16);
+        }
+        return 0;
+    });
+    
+    dom::get("#instructions").text("ARROW KEYS / WASD TO MOVE. GET BLUE SHIELDS AND ORANGE SPEED BOOSTS!");
+}

@@ -1,0 +1,113 @@
+---
+title: 'Server API'
+description: 'Building backend services with Web+ routes'
+---
+
+# Server API Tutorial
+
+Web+ isn't just for the browser. With the `route` primitive, you can build high-performance microservices and APIs that run on WASI-compatible servers.
+
+## 1. Defining a Simple Route
+
+A route handles a specific HTTP method and path. Let's create a basic health-check endpoint:
+
+```webplus
+route GET "/health" -> Response {
+    return json({ "status": "online", "version": "v0.1" });
+}
+```
+
+---
+
+## 2. Using URL Parameters
+
+Standard APIs often need to extract IDs from the URL. In Web+, you use the `:` prefix in the path and the `param()` function to extract the value.
+
+```webplus
+route GET "/api/user/:id" -> Response {
+    // Extract ID (comes in as an int by default)
+    int userId = param("id");
+    
+    // Return a structured response
+    return json({ 
+        "id": userId,
+        "username": "developer_99" 
+    });
+}
+```
+
+---
+
+## 3. Returning Structs as JSON
+
+Web+ makes it easy to serialize complex data structures. Simply define a `struct` and pass a pointer to it into the `json()` function:
+
+```webplus
+struct Project {
+    int id;
+    string title;
+    bool isActive;
+};
+
+route GET "/api/project" -> Response {
+    // 1. Allocate a struct on the heap
+    Project* p = alloc<Project>(1);
+    
+    // 2. Set values
+    p->id = 505;
+    p->title = "Nebula Engine";
+    p->isActive = true;
+    
+    // 3. Serialized into a JSON Response
+    Response res = json(p);
+    
+    // 4. CLEANUP (Always free heap memory!)
+    free(p);
+    
+    return res;
+}
+```
+
+---
+
+## 4. Handling POST Requests
+
+For creating or updating data, use the `POST` method:
+
+```webplus
+route POST "/api/submit" -> Response {
+    // In v0.1, you can access the raw request body via request::body()
+    // Validation logic goes here...
+    
+    return json({ "success": true });
+}
+```
+
+---
+
+## 5. Deployment
+
+To compile your code for a server environment, you must use the `--target server` flag:
+
+```bash
+webplus build main.webplus --target server -o build
+```
+
+This will generate a `.wasm` file optimized for runtimes like **Wasmtime** or **Wasmer**. You can run it locally with:
+
+```bash
+webplus run build --server
+```
+
+---
+
+## Key Terms
+
+- **Route**: A mapping between a URL path and a block of code.
+- **Response**: The object returned by a route, containing headers, status code, and body.
+- **JSON Serialization**: The process of turning Web+ structs into text strings that other languages (like JS or Python) can understand.
+
+---
+
+## Summary
+You've now learned how to build a full-stack experience using Web+. From interactive UIs in the browser to robust APIs on the server, Web+ provides a unified, performance-first language for the entire web ecosystem.

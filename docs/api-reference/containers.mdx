@@ -1,0 +1,70 @@
+---
+title: 'Containers'
+description: 'Dynamic data structures in Web+'
+---
+
+# Containers
+
+Web+ provides highly optimized, manual-memory managed containers for dynamic data storage.
+
+## Vector\<T\>
+
+The `Vector` is a dynamic array that grows automatically as you add elements. It is the primary container for most applications.
+
+### Definition
+
+```cpp
+#include "runtime/vector.hpp"
+
+webplus::Vector<int> list;
+```
+
+### Methods
+
+#### list.push(value)
+Adds an element to the end of the vector. If the capacity is exceeded, the vector will automatically reallocate with more space.
+- **Complexity**: Amortized O(1)
+
+#### list.pop()
+Removes and returns the last element.
+- **Complexity**: O(1)
+
+#### list.at(index) / list[index]
+Accesses the element at the specified index.
+- **Complexity**: O(1)
+
+#### list.size()
+Returns the number of elements currently in the vector.
+
+#### list.capacity()
+Returns the total number of elements the vector can hold before the next reallocation.
+
+#### list.clear()
+Frees the underlying buffer and resets the size to 0.
+
+#### list.reserve(new_capacity)
+Increases the capacity of the vector to at least `new_capacity`.
+
+### Example
+
+```cpp
+webplus::Vector<webplus::String> names;
+
+names.push("Alice");
+names.push("Bob");
+
+for(size_t i = 0; i < names.size(); i++) {
+    webplus::print("Person: ", names[i].c_str());
+}
+
+// Cleanup
+names.clear();
+```
+
+---
+
+## Performance Considerations
+
+- **Manual Management**: Unlike JavaScript Arrays, `webplus::Vector` does not have a hidden garbage collector. You must call `clear()` when the vector is no longer needed.
+- **Contiguous Memory**: Elements are stored in contiguous memory, making `at()` extremely fast and cache-friendly.
+- **Reallocation**: To avoid frequent reallocations, use `reserve()` if you know the approximate number of elements you'll be storing.

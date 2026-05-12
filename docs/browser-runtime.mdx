@@ -1,0 +1,457 @@
+---
+title: 'Browser Runtime'
+description: 'Browser runtime architecture and usage for Web+ applications'
+---
+
+# Browser Runtime
+
+The Web+ browser runtime enables Web+ applications to run in modern web browsers via WebAssembly. It provides the bridge between your Web+ code and browser APIs.
+
+## Architecture
+
+```
+┌──────────────────────────────────────┐
+│   Web+ Application (.webplus)       │
+└────────────┬─────────────────────────┘
+             │ Transpile
+┌────────────▼─────────────────────────┐
+│   C++ Code (with stdlib headers)    │
+└────────────┬─────────────────────────┘
+             │ Emscripten
+┌────────────▼─────────────────────────┐
+│   WebAssembly Module (.wasm + .js)  │
+└────────────┬─────────────────────────┘
+             │
+┌────────────▼─────────────────────────┐
+│   Browser Runtime (runtime.js)      │
+│  - Element tracking                 │
+│  - Promise management               │
+│  - Worker lifecycle                 │
+│  - Callback registration            │
+└────────────┬─────────────────────────┘
+             │
+┌────────────▼─────────────────────────┐
+│   Browser APIs (DOM, Fetch, etc.)   │
+└──────────────────────────────────────┘
+```
+
+## Components
+
+### 1. Runtime JavaScript (runtime.js)
+
+Provides the minimal JavaScript glue layer for browser API access.
+
+**Features:**
+- Element tracking with ID-based references
+- Promise management for async operations
+- Worker lifecycle management
+- Callback registration system
+- Error logging and debugging
+
+**Global Objects:**
+```javascript
+window.__webplus               // Runtime namespace
+window.__webplus_elements      // DOM element registry
+window.__webplus_promises      // Promise registry
+window.__webplus_workers       // Worker registry
+window.__webplus_callbacks     // Callback registry
+```
+
+### 2. WASM Runtime (runtime.cpp)
+
+C++ runtime initialization and lifecycle management.
+
+**Functions:**
+```cpp
+void runtime_init();           // Initialize runtime
+void runtime_cleanup();        // Cleanup resources
+const char* runtime_version(); // Get version string
+```
+
+**Runtime Class:**
+```cpp
+class Runtime {
+    void initialize();
+    void cleanup();
+    bool is_initialized() const;
+    static Runtime& instance();
+};
+```
+
+### 3. HTML Template (index.html)
+
+Production-ready HTML template with:
+- Loading indicator
+- Error handling
+- Automatic WASM module initialization
+- Modern dark theme styling
+- Cleanup on page unload
+
+## Building for Browser
+
+### Using CLI
+
+```bash
+webplus build main.webplus -o build/
+```
+
+This generates:
+- `build/main.wasm` - WebAssembly binary
+- `build/main.js` - Emscripten JavaScript glue
+
+### Direct WASM Build (No Emscripten)
+
+For simpler projects, you can build directly to WASM without Emscripten:
+
+```bash
+# Requires WABT (wat2wasm) installed
+webplus build main.webplus --format wasm -o build/
+```
+
+This generates:
+- `build/app.wat` - WebAssembly Text format
+- `build/app.wasm` - Binary WebAssembly
+- `build/webplus-loader.js` - Simple JS loader
+
+### Manual Build with Emscripten
+
+```bash
+# Transpile Web+ to C++
+webplus transpile main.webplus -o main.cpp
+
+# Compile with Emscripten
+emcc main.cpp \
+  -o build/main.js \
+  -s WASM=1 \
+  -s ALLOW_MEMORY_GROWTH=1 \
+  -s EXPORTED_FUNCTIONS='["_main","_runtime_init","_runtime_cleanup"]' \
+  -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
+  -I../stdlib \
+  -lembind \
+  --bind
+```
+
+## Deployment
+
+### File Structure
+
+```
+build/
+├── index.html         # HTML template
+├── runtime.js         # Browser runtime
+├── main.wasm          # Your compiled WASM module
+└── main.js            # Emscripten glue
+```
+
+### Copying Runtime Files
+
+```bash
+cp stdlib/browser/index.html build/
+cp stdlib/browser/runtime.js build/
+```
+
+### Serving Locally
+
+```bash
+cd build
+python -m http.server 8000
+# Open http://localhost:8000
+```
+
+### Production Deployment
+
+Deploy to any static hosting:
+
+**Vercel:**
+```bash
+vercel build/
+```
+
+**Netlify:**
+```bash
+netlify deploy --dir=build --prod
+```
+
+**GitHub Pages:**
+```bash
+git subtree push --prefix build origin gh-pages
+```
+
+## Runtime Lifecycle
+
+### Initialization Sequence
+
+1. Browser loads `index.html`
+2. `runtime.js` initializes global registries
+3. `main.js` (Emscripten glue) loads
+4. `main.wasm` module instantiates
+5. `Module.onRuntimeInitialized` fires
+6. `runtime_init()` is called
+7. Your `main()` function executes
+
+### Cleanup Sequence
+
+1. Page `beforeunload` event fires
+2. `runtime_cleanup()` is called
+3. Active workers are terminated
+4. Registries are cleared
+5. WASM module deallocates
+
+## DOM Integration
+
+### Element Tracking
+
+Elements are tracked using integer IDs to avoid pointer issues between WASM and JavaScript.
+
+```cpp
+// C++ side
+webplus::dom::Element button = webplus::dom::get("#myButton");
+
+// JavaScript side (automatic)
+window.__webplus_elements[0] = document.querySelector("#myButton");
+```
+
+### Memory Model
+
+- **WASM Memory**: Linear memory for your application
+- **JS Heap**: Separate heap for DOM objects
+- **Bridge**: Emscripten's `EM_ASM` macros for JS interop
+
+### String Marshalling
+
+Strings are marshalled between WASM and JS:
+
+```cpp
+// C++ → JS
+EM_ASM({
+    console.log(UTF8ToString($0));
+}, myString.c_str());
+
+// JS → C++
+char* jsString = (char*)EM_ASM_INT({
+    const str = "Hello from JS";
+    const len = lengthBytesUTF8(str) + 1;
+    const ptr = _malloc(len);
+    stringToUTF8(str, ptr, len);
+    return ptr;
+});
+```
+
+## Async Operations
+
+### Promise Handling
+
+Promises are tracked and resolved asynchronously:
+
+```cpp
+// C++ initiates fetch
+webplus::Promise p = webplus::fetch("/api/data");
+
+// JavaScript handles async work
+window.__webplus_promises[0] = fetch("/api/data")
+    .then(r => r.text())
+    .then(text => {
+        // Marshal back to WASM
+    });
+```
+
+### Future Support (v0.2)
+
+Full callback support requires:
+- Function pointer trampolines
+- WASM function table exports
+- Callback lifetime management
+
+## Worker Support
+
+### Current Status (v0.1)
+
+Worker infrastructure is in place but callbacks are limited.
+
+### Future Support (v0.2)
+
+```cpp
+worker w = worker::spawn([] {
+    return heavy_computation();
+});
+
+int result = w.join();
+```
+
+## Performance Optimization
+
+### Binary Size
+
+Minimize WASM size:
+```bash
+emcc ... -Os -s AGGRESSIVE_VARIABLE_ELIMINATION=1
+```
+
+### Loading Speed
+
+Use streaming compilation:
+```javascript
+const { instance } = await WebAssembly.instantiateStreaming(
+    fetch('main.wasm'),
+    importObject
+);
+```
+
+### Memory Growth
+
+Configure memory settings:
+```bash
+emcc ... -s INITIAL_MEMORY=16MB -s ALLOW_MEMORY_GROWTH=1
+```
+
+## Debugging
+
+### Browser DevTools
+
+1. Open DevTools (F12)
+2. Check Console for Web+ logs
+3. Use Sources tab for WASM debugging
+4. Monitor Network for fetch calls
+
+### Console Output
+
+```cpp
+webplus::print("Debug:", value);        // Console.log
+webplus::warn("Warning:", message);     // Console.warn
+webplus::error("Error:", error);        // Console.error
+```
+
+### Error Messages
+
+The runtime provides clear error messages:
+```
+[Web+ Error] WebAssembly module aborted: ...
+[Web+ Warning] Element not found: #myButton
+[Web+ Info] Runtime initialized v0.1.0
+```
+
+## Security
+
+### Sandboxing
+
+- WASM runs in isolated memory space
+- No direct access to OS or file system
+- Limited to browser capabilities
+- All external calls go through runtime bridge
+
+### Content Security Policy
+
+Compatible with strict CSP:
+```html
+<meta http-equiv="Content-Security-Policy" 
+      content="default-src 'self'; 
+               script-src 'self' 'wasm-unsafe-eval';">
+```
+
+### CORS
+
+Fetch requests respect CORS policies:
+```cpp
+// This request must pass CORS checks
+webplus::fetch("https://api.example.com/data");
+```
+
+## Browser Compatibility
+
+### Supported Browsers
+
+- ✅ Chrome 57+
+- ✅ Firefox 52+
+- ✅ Safari 11+
+- ✅ Edge 16+
+
+### Requirements
+
+- WebAssembly support
+- ES6 JavaScript
+- Fetch API
+- Promise support
+
+### Polyfills
+
+For older browsers, include:
+```html
+<script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.6.2/dist/fetch.umd.js"></script>
+```
+
+## Limitations (v0.1)
+
+Current browser runtime limitations:
+
+- ❌ No WebWorker creation from Web+ code
+- ❌ Limited callback support
+- ❌ No WebGL/Canvas2D direct access
+- ❌ No WebSocket support
+- ❌ No IndexedDB bindings
+- ❌ No ServiceWorker integration
+
+These will be addressed in future versions.
+
+## Example Application
+
+### main.webplus
+
+```cpp
+void main() {
+    webplus::stdlib_init();
+    
+    webplus::dom::Element app = webplus::dom::get("#app");
+    
+    if (app.is_valid()) {
+        webplus::dom::Element title = webplus::dom::createElement("h1");
+        title.text("Web+ Browser Runtime Demo");
+        app.append(title);
+        
+        webplus::dom::Element status = webplus::dom::createElement("p");
+        status.text("Runtime initialized successfully!");
+        status.add_class("success");
+        app.append(status);
+    }
+    
+    webplus::print("Application running in browser!");
+    
+    webplus::stdlib_cleanup();
+}
+```
+
+### Build & Run
+
+```bash
+webplus build main.webplus -o build/
+cp stdlib/browser/* build/
+cd build && python -m http.server
+```
+
+## Troubleshooting
+
+### WASM Module Fails to Load
+
+Check:
+- File paths in index.html
+- CORS headers if serving from different origin
+- Browser console for error messages
+
+### DOM Elements Not Found
+
+Ensure:
+- Elements exist in HTML before WASM runs
+- Selectors are correct
+- `DOMContentLoaded` has fired
+
+### Memory Issues
+
+Try:
+- Increase `INITIAL_MEMORY`
+- Enable `ALLOW_MEMORY_GROWTH`
+- Check for memory leaks (unreleased allocations)
+
+## Credits
+
+**Built by:** Samin Yeasar ([@Solez-ai](https://github.com/Solez-ai))  
+**License:** MIT  
+**Version:** 0.1.0

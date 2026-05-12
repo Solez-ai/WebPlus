@@ -1,0 +1,46 @@
+---
+title: 'Streams API'
+description: 'Handling real-time data streams'
+---
+
+# Streams API
+
+The Streams API allows you to process data as it arrives, which is more memory-efficient than waiting for the entire payload.
+
+## Types
+
+### ReadableStream
+A stream of incoming data.
+
+### WritableStream
+A destination for outgoing data.
+
+---
+
+## Usage in v0.1
+
+In the current version, streams are primarily used in the context of the large `fetch` body processing and file uploads.
+
+### Methods
+
+#### stream.pipe(destination)
+Pipes the output of this stream into a `WritableStream`.
+
+#### stream.read_slice(size)
+Reads a chunk of data from the stream.
+
+---
+
+## Example: Processing Image Data
+
+```cpp
+fetch("/large-image.bin").then([](Response r) {
+    ReadableStream s = r.stream();
+    // Process chunks...
+});
+```
+
+---
+
+## Roadmap for v0.2
+Full support for custom `TransformStreams` and byte-level stream manipulation is planned for the next major release.

@@ -1,0 +1,452 @@
+---
+title: "Language Overview"
+description: "Complete specification of the Web+ programming language"
+---
+
+# Web+ Language Specification v0.1
+
+Web+ is a C++-inspired, systems-level language designed specifically for the web. It compiles to WebAssembly and provides low-level control with web-native primitives.
+
+## Design Philosophy
+
+Web+ follows these core principles:
+
+1. **Performance First** - All abstractions are zero-cost or explicitly opt-in
+2. **Explicit Over Implicit** - Memory, concurrency, and async behavior is visible
+3. **Web-Native** - DOM, HTTP, workers are language primitives, not libraries
+4. **No Beginner Optimizations** - Designed for experienced systems programmers
+5. **Determinism Matters** - Predictable execution and memory behavior
+
+## Syntax Overview
+
+Web+ uses C++-style syntax with web-specific extensions:
+
+```webplus
+// Comments use C++ style
+// This is a single-line comment
+
+/* 
+   This is a multi-line comment
+*/
+
+// Primitive types
+int x = 42;
+float pi = 3.14;
+double precise = 3.141592653589793;
+bool isReady = true;
+char c = 'A';
+string name = "Web+";
+
+// Pointers and references
+int* ptr = alloc<int>(1);
+int& ref = *ptr;
+
+// Structs
+struct Point {
+    float x;
+    float y;
+};
+
+// Functions
+int add(int a, int b) {
+    return a + b;
+}
+
+// Web primitives
+dom::Element elem = dom::get("#app");
+worker w = worker::spawn([] { return fib(40); });
+
+// HTTP routes (server-side)
+route GET "/api/data" -> Response {
+    return json({ "status": "ok" });
+}
+```
+
+## Primitive Types
+
+### Integer Types
+
+```webplus
+int value = 42;        // 32-bit signed integer
+```
+
+**Range:** -2,147,483,648 to 2,147,483,647  
+**Size:** 4 bytes  
+**Alignment:** 4 bytes
+
+### Floating Point Types
+
+```webplus
+float f = 3.14;        // 32-bit floating point
+double d = 3.14159;    // 64-bit floating point
+```
+
+**float:**
+- Size: 4 bytes
+- Precision: ~7 decimal digits
+- IEEE 754 single precision
+
+**double:**
+- Size: 8 bytes
+- Precision: ~15 decimal digits
+- IEEE 754 double precision
+
+### Boolean Type
+
+```webplus
+bool isValid = true;
+bool isClosed = false;
+```
+
+**Size:** 1 byte  
+**Values:** `true` or `false`
+
+### Character Type
+
+```webplus
+char letter = 'A';
+char digit = '7';
+```
+
+**Size:** 1 byte  
+**Encoding:** ASCII
+
+### String Type
+
+```webplus
+string message = "Hello, Web+!";
+string empty = "";
+```
+
+**Implementation:** `std::string` in generated C++  
+**Encoding:** UTF-8  
+**Methods:** See [String API Reference](/api-reference/containers#string)
+
+### Void Type
+
+```webplus
+void noReturn() {
+    // Function returns nothing
+}
+```
+
+## Memory Model
+
+Web+ provides explicit memory control without garbage collection.
+
+### Stack Allocation
+
+```webplus
+int localVar = 42;           // Stack allocated
+Point p = { 10.0, 20.0 };    // Stack allocated struct
+```
+
+Stack memory:
+- **Automatically managed** within function scope
+- **Fast allocation** and deallocation
+- **Limited size** (typically few MB)
+- **Lifetime:** Until function returns
+
+### Heap Allocation
+
+```webplus
+int* heapInt = alloc<int>(1);
+heapInt[0] = 42;
+free(heapInt);  // Manual deallocation required
+```
+
+Heap memory:
+- **Manual management** required
+- **Unlimited size** (limited by system RAM)
+- **Slower** than stack
+- **Lifetime:** Until explicitly freed
+
+### Arena Allocation
+
+```webplus
+int* arenaInt = arena<int>(100);  // Fast arena allocation
+// No individual free - arena cleared as a whole
+```
+
+Arena allocators:
+- **Fastest allocation** for bulk allocations
+- **No individual free**
+- **Region-based** memory management
+- **Use case:** Temporary buffers, batch processing
+
+## Control Flow
+
+### If Statements
+
+```webplus
+if (x > 0) {
+    // Positive
+} else if (x < 0) {
+    // Negative
+} else {
+    // Zero
+}
+```
+
+### Loops
+
+```webplus
+// While loop
+while (condition) {
+    // Body
+}
+
+// For loop
+for (int i = 0; i < 10; i++) {
+    // Body
+}
+```
+
+## Functions
+
+### Function Declaration
+
+```webplus
+ReturnType functionName(ParamType param1, ParamType param2) {
+    // Function body
+    return value;
+}
+```
+
+### Parameters
+
+- **Pass by value** (default)
+- **Pass by pointer** (`Type*`)
+- **Pass by reference** (`Type&`)
+
+```webplus
+void byValue(int x) { }
+void byPointer(int* x) { }
+void byReference(int& x) { }
+```
+
+### Return Values
+
+Functions must return a value if return type is not `void`:
+
+```webplus
+int calculate() {
+    return 42;  // Required
+}
+
+void noReturn() {
+    // No return statement needed
+}
+```
+
+## Structs
+
+### Struct Definition
+
+```webplus
+struct User {
+    int id;
+    string name;
+    string email;
+};
+```
+
+### Struct Usage
+
+```webplus
+// Stack allocation
+User user;
+user.id = 1;
+user.name = "Samin";
+
+// Heap allocation
+User* userPtr = alloc<User>(1);
+userPtr->id = 1;
+userPtr->name = "Samin";
+free(userPtr);
+```
+
+## Type System
+
+### Static Typing
+
+Web+ is **statically typed**. All types are checked at compile time:
+
+```webplus
+int x = 42;       // OK
+x = "string";     // ERROR: type mismatch
+```
+
+### Type Inference
+
+Limited type inference in some contexts:
+
+```webplus
+auto result = add(1, 2);  // Inferred as int
+```
+
+### Type Conversions
+
+**Implicit conversions** are **not allowed**. All conversions must be explicit:
+
+```webplus
+float f = 3.14;
+int i = (int)f;       // Explicit cast required
+```
+
+### Allowed explicit casts:
+
+- `int` ↔ `float`, `double`
+- `char` → `int`
+- `bool` → `int` (true=1, false=0)
+- Pointers of same base type
+
+### Forbidden conversions:
+
+- `string` ↔ numeric types (use parsing functions)
+- Pointers of different base types (without explicit cast)
+- `void*` to typed pointer (unsafe)
+
+## Memory Safety
+
+Web+ provides optional memory safety features beyond manual allocation:
+
+### Arc (Automatic Reference Counting)
+
+```webplus
+Arc<User> user = Arc<User>::make({ id: 1, name: "Samin" });
+// Automatically freed when reference count reaches 0
+Arc<User> another = user;  // Reference count increases
+```
+
+### Option (Null Safety)
+
+```webplus
+Option<int> maybe = Option<int>(42);
+if (maybe.has_value()) {
+    int value = maybe.value();
+}
+
+int safe = maybe.value_or(0);  // Default if null
+```
+
+### Result (Error Handling)
+
+```webplus
+Result<int, string> divide(int a, int b) {
+    if (b == 0) {
+        return Result<int, string>::err("Division by zero");
+    }
+    return Result<int, string>::ok(a / b);
+}
+
+auto result = divide(10, 2);
+if (result.is_ok()) {
+    int value = result.unwrap();
+}
+```
+
+## Optimization
+
+Web+ includes compile-time optimizations:
+
+### Constant Folding
+
+```webplus
+int x = 5 + 3;     // Compiles to: int x = 8;
+int y = 2 * 10;    // Compiles to: int y = 20;
+bool flag = 1 > 0; // Compiles to: bool flag = true;
+```
+
+### Dead Code Elimination
+
+```webplus
+if (true) {
+    print("This always runs");  // Kept
+} else {
+    print("This is removed");   // Eliminated at compile time
+}
+```
+
+Enable optimizations with:
+```bash
+webplus build main.webplus --optimize
+```
+
+## Compile-Time Evaluation
+
+Web+ performs several compile-time checks:
+
+### Type Checking
+
+All types must match:
+
+```webplus
+int x = 42;
+string y = x;  // ERROR: Cannot assign int to string
+```
+
+### Memory Safety Hints
+
+Optional bounds checking in debug builds:
+
+```webplus
+int* arr = alloc<int>(10);
+arr[100] = 42;  // WARNING: Possible out-of-bounds access
+```
+
+### Syntax Validation
+
+All syntax must be correct:
+
+```webplus
+if (x > 0  // ERROR: Missing closing parenthesis
+```
+
+## Execution Model
+
+### Deterministic Execution
+
+Web+ guarantees deterministic execution order:
+
+1. Global variable initialization (if any)
+2. `main()` function execution
+3. Event callbacks (DOM, HTTP, workers)
+
+### No Garbage Collection
+
+Memory is **never** automatically reclaimed. All allocations must be explicitly freed:
+
+```webplus
+int* data = alloc<int>(100);
+// ... use data ...
+free(data);  // Required!
+```
+
+### WebAssembly Runtime
+
+Web+ compiles to WebAssembly, which provides:
+
+- **Sandboxed execution** in browser
+- **Near-native performance**
+- **Linear memory** model
+- **No access** to host system without explicit bindings
+
+## Next Steps
+
+Explore specific language features:
+
+<CardGroup cols={2}>
+  <Card title="Types" icon="code" href="/language-spec/types">
+    Complete type system reference
+  </Card>
+  <Card title="Memory Management" icon="memory" href="/language-spec/memory">
+    Detailed memory model documentation
+  </Card>
+  <Card title="Web Primitives" icon="globe" href="/language-spec/web-primitives">
+    DOM, HTTP, workers, and fetch
+  </Card>
+  <Card title="Concurrency" icon="arrows-split-up-and-left" href="/language-spec/concurrency">
+    Workers and concurrent execution
+  </Card>
+</CardGroup>

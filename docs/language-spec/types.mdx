@@ -1,0 +1,486 @@
+---
+title: "Type System"
+description: "Complete type system reference for Web+"
+---
+
+# Type System
+
+Web+ is a statically-typed language with explicit type declarations and compile-time type checking. This page provides a complete reference for the type system.
+
+## Primitive Types
+
+### Integer Types
+
+#### int
+32-bit signed integer
+
+**Range:** `-2,147,483,648` to `2,147,483,647`  
+**Size:** 4 bytes  
+**Alignment:** 4 bytes
+
+```webplus
+int age = 25;
+int temperature = -10;
+int max = 2147483647;
+```
+
+**Use cases:**
+- Counters and indices
+- Small whole numbers
+- General-purpose integer arithmetic
+
+---
+
+### Floating-Point Types
+
+####float
+32-bit IEEE 754 single-precision floating point
+
+**Precision:** ~7 decimal digits  
+**Size:** 4 bytes  
+**Range:** ±3.4 × 10³⁸
+
+```webplus
+float pi = 3.14159;
+float price = 19.99;
+float epsilon = 0.0001;
+```
+
+**Use cases:**
+- Graphics coordinates
+- Physics simulations
+- General decimal numbers where precision isn't critical
+
+#### double
+64-bit IEEE 754 double-precision floating point
+
+**Precision:** ~15 decimal digits  
+**Size:** 8 bytes  
+**Range:** ±1.7 × 10³⁰⁸
+
+```webplus
+double precise_pi = 3.141592653589793;
+double scientific = 6.02214076e23;
+```
+
+**Use cases:**
+- Scientific calculations
+- Financial computations
+- High-precision requirements
+
+---
+
+### Boolean Type
+
+#### bool
+Boolean true/false value
+
+**Size:** 1 byte  
+**Values:** `true` or `false`
+
+```webplus
+bool isReady = true;
+bool hasErrors = false;
+bool condition = (x > 10);
+```
+
+**Implicit conversions:** NONE  
+**Explicit conversions:**
+- `(int)true` → `1`
+- `(int)false` → `0`
+
+---
+
+### Character Type
+
+#### char
+Single ASCII character
+
+**Size:** 1 byte  
+**Range:** 0-255 (ASCII)
+
+```webplus
+char letter = 'A';
+char digit = '7';
+char newline = '\n';
+```
+
+**Escape sequences:**
+- `\n` - newline
+- `\t` - tab
+- `\\` - backslash
+- `\'` - single quote
+- `\"` - double quote
+
+---
+
+### String Type
+
+#### string
+UTF-8 encoded text string
+
+**Implementation:** `std::string` in generated C++  
+**Encoding:** UTF-8
+
+```webplus
+string name = "Web+";
+string message = "Hello, World!";
+string empty = "";
+```
+
+**Methods:**
+```webplus
+int len = text.length();
+string sub = text.substring(0, 5);
+string upper = text.toUpperCase();
+string lower = text.toLowerCase();
+```
+
+**Concatenation:**
+```webplus
+string full = first + " " + last;
+```
+
+---
+
+### Void Type
+
+#### void
+No return value
+
+```webplus
+void printMessage() {
+    // No return statement
+}
+
+void* generic_ptr;  // Generic pointer (use cautiously)
+```
+
+---
+
+## Composite Types
+
+### Pointers
+
+#### Definition
+Reference to memory address
+
+**Syntax:** `Type*`
+
+```webplus
+int* ptr = alloc<int>(1);
+*ptr = 42;  // Dereference
+free(ptr);
+```
+
+**Operations:**
+- `*` - Dereference (get value at address)
+- `&` - Address-of (get address of variable)
+- `->` - Member access through pointer
+
+```webplus
+int x = 10;
+int* ptr = &x;  // Get address
+int value = *ptr;  // Get value (10)
+```
+
+#### Struct Pointers
+
+```webplus
+struct User {
+    int id;
+    string name;
+};
+
+User* user = alloc<User>(1);
+user->id = 1;  // Arrow operator
+user->name = "Samin";
+free(user);
+```
+
+---
+
+### References
+
+#### Definition
+Alias to existing variable
+
+**Syntax:** `Type&`
+
+```webplus
+int x = 10;
+int& ref = x;  // Reference to x
+ref = 20;  // Modifies x
+```
+
+**Characteristics:**
+- Must be initialized when declared
+- Cannot be reassigned
+- No null references
+- Automatically dereferenced
+
+**Use cases:**
+- Function parameters (avoid copies)
+- Returning large objects
+- Operator overloading
+
+---
+
+### Arrays
+
+#### Static Arrays
+Fixed-size arrays (stack allocated)
+
+```webplus
+int numbers[10];
+numbers[0] = 42;
+int first = numbers[0];
+```
+
+#### Dynamic Arrays
+Heap-allocated arrays
+
+```webplus
+int* numbers = alloc<int>(100);
+numbers[0] = 1;
+numbers[99] = 100;
+free(numbers);
+```
+
+**Multidimensional:**
+```webplus
+int** matrix = alloc<int*>(10);
+for (int i = 0; i < 10; i++) {
+    matrix[i] = alloc<int>(10);
+}
+
+matrix[5][5] = 42;
+
+// Free in reverse
+for (int i = 0; i < 10; i++) {
+    free(matrix[i]);
+}
+free(matrix);
+```
+
+---
+
+### Structs
+
+#### Definition
+User-defined composite types
+
+```webplus
+struct Point {
+    float x;
+    float y;
+};
+
+struct User {
+    int id;
+    string name;
+    string email;
+};
+```
+
+#### Usage
+
+**Stack allocation:**
+```webplus
+Point p;
+p.x = 10.0;
+p.y = 20.0;
+```
+
+**Heap allocation:**
+```webplus
+User* user = alloc<User>(1);
+user->id = 1;
+user->name = "Samin";
+free(user);
+```
+
+#### Nested Structs
+
+```webplus
+struct Address {
+    string street;
+    string city;
+};
+
+struct Person {
+    string name;
+    Address address;
+};
+
+Person p;
+p.address.city = "New York";
+```
+
+---
+
+## Web-Native Types
+
+### dom::Element
+DOM element reference
+
+```webplus
+dom::Element button = dom::get("#submit");
+button.on("click", handler);
+```
+
+### Response
+HTTP response object
+
+```webplus
+Response r = json({ "status": "ok" });
+return r;
+```
+
+### Future\<T\>
+Async operation result
+
+```webplus
+Future<Response> future = fetch("/api/data");
+future.then(handler);
+```
+
+### worker
+Web Worker handle
+
+```webplus
+worker w = worker::spawn(calculation);
+int result = w.join();
+```
+
+---
+
+## Type Conversions
+
+### Explicit Casts
+
+**Numeric conversions:**
+```webplus
+float f = 3.14;
+int i = (int)f;  // 3
+
+int x = 65;
+char c = (char)x;  // 'A'
+```
+
+**Pointer conversions:**
+```webplus
+void* generic = alloc<int>(1);
+int* specific = (int*)generic;
+```
+
+### Forbidden Conversions
+
+**No implicit conversions:**
+```webplus
+int x = 3.14;  // ERROR: float to int requires cast
+float f = "42";  // ERROR: string to float not allowed
+```
+
+**String conversions require functions:**
+```webplus
+string s = "42";
+int i = parseInt(s);
+
+int value = 42;
+string s = toString(value);
+```
+
+---
+
+## Type Inference (Limited)
+
+### auto Keyword
+
+```webplus
+auto result = calculate();  // Type inferred from return value
+auto count = getCount();
+```
+
+**Restrictions:**
+- Must be initialized
+- Type determined at compile-time
+- Not available for function parameters
+
+---
+
+## Type Checking
+
+### Compile-Time Checks
+
+All type mismatches caught at compile time:
+
+```webplus
+int x = 42;
+string s = x;  // ERROR: Cannot assign int to string
+
+float calculate(int a, int b);
+float result = calculate("5", "10");  // ERROR: Wrong parameter types
+```
+
+### Runtime Checks (Optional)
+
+Enable with `--bounds-check` flag:
+
+```webplus
+int* arr = alloc<int>(10);
+arr[100] = 42;  // WARNING: Out of bounds access
+```
+
+---
+
+## Type Safety
+
+### Memory Safety
+
+**Type-safe allocations:**
+```webplus
+int* ptr = alloc<int>(10);  // Type is preserved
+ptr[0] = 42;  // Type-checked access
+```
+
+**Dangling pointer detection (debug mode):**
+```webplus
+int* ptr = alloc<int>(1);
+free(ptr);
+*ptr = 42;  // WARNING: Use after free
+```
+
+### Null Safety
+
+**No automatic null checks:**
+```webplus
+int* ptr = nullptr;
+*ptr = 42;  // Undefined behavior, no automatic check
+```
+
+**Manual check required:**
+```webplus
+if (ptr != nullptr) {
+    *ptr = 42;
+}
+```
+
+---
+
+## Best Practices
+
+1. **Use the smallest type** that fits your data
+2. **Prefer references** over pointers for function parameters
+3. **Avoid void\*** unless absolutely necessary
+4. **Always initialize** variables
+5. **Use structs** to group related data
+6. **Be explicit** - no implicit conversions
+
+---
+
+## See Also
+
+- [Memory Management](/language-spec/memory)
+- [Structs](/language-spec/structs)
+- [Functions](/language-spec/functions)

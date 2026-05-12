@@ -1,0 +1,12 @@
+{
+    "name": "webplus-docs",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "node ./node_modules/@mintlify/cli/bin/start.js dev",
+        "build": "mintlify build"
+    },
+    "devDependencies": {
+        "mintlify": "^4.2.309"
+    }
+}

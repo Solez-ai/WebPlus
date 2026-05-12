@@ -1,0 +1,424 @@
+---
+title: 'Standard Library Reference'
+description: 'Complete reference for the Web+ minimal standard library v0.1'
+---
+
+# Standard Library Reference
+
+The Web+ standard library provides essential runtime features for both browser and server environments. This is the minimal v0.1 implementation focusing on core functionality.
+
+## Philosophy
+
+The Web+ stdlib follows these principles:
+
+- **Zero-cost abstractions** - No overhead from library usage
+- **Manual memory management** - Explicit and predictable
+- **Web-native** - First-class support for DOM and browser APIs
+- **Cross-platform** - Works in browser (via WASM) and server (via WASI)
+- **Minimal footprint** - Only include what you use
+
+## Memory Primitives
+
+### Basic Types
+
+```cpp
+webplus::int32      // 32-bit signed integer
+webplus::float32    // 32-bit floating point
+webplus::float64    // 64-bit floating point (double)
+webplus::bool_t     // Boolean type
+webplus::char_t     // Single character
+```
+
+### String
+
+Manual memory-managed UTF-8 string class.
+
+#### Constructor
+
+```cpp
+webplus::String str();              // Empty string
+webplus::String str("Hello");       // From C-string
+webplus::String str2(str);          // Copy constructor
+```
+
+#### Methods
+
+```cpp
+const char* c_str() const;          // Get C-string pointer
+size_t length() const;              // Get string length
+bool empty() const;                 // Check if empty
+void append(const char* str);       // Append string
+void clear();                       // Clear and free memory
+```
+
+#### Example
+
+```cpp
+webplus::String message = "Hello";
+message.append(", World!");
+webplus::print(message.c_str());    // Output: Hello, World!
+message.clear();                    // Free memory
+```
+
+### Memory Allocation
+
+```cpp
+template<typename T>
+T* alloc(size_t count);             // Allocate count elements
+
+template<typename T>
+void free_ptr(T* ptr);              // Free allocated memory
+```
+
+#### Example
+
+```cpp
+int* numbers = webplus::alloc<int>(10);
+numbers[0] = 42;
+webplus::free_ptr(numbers);
+```
+
+### Stack Arrays
+
+Fixed-size arrays allocated on the stack (or managed heap).
+
+```cpp
+template<typename T>
+class StackArray<T> {
+    explicit StackArray(size_t size);
+    T& operator[](size_t index);
+    size_t size() const;
+    T* data();
+};
+```
+
+#### Example
+
+```cpp
+webplus::StackArray<int> arr(5);
+arr[0] = 10;
+arr[1] = 20;
+```
+
+### Arena Allocator
+
+Fast bump allocator for temporary allocations.
+
+```cpp
+template<typename T>
+class Arena<T> {
+    explicit Arena(size_t capacity);
+    T* allocate(size_t count);
+    void reset();
+    size_t available() const;
+};
+```
+
+#### Example
+
+```cpp
+webplus::Arena<int> arena(1000);
+int* temp1 = arena.allocate(5);
+int* temp2 = arena.allocate(10);
+arena.reset();  // Reset, invalidates all pointers
+```
+
+## Containers
+
+### Vector
+
+Dynamic array with automatic growth.
+
+```cpp
+template<typename T>
+class Vector<T> {
+    Vector();
+    void push(const T& value);
+    T pop();
+    T& at(size_t index);
+    T& operator[](size_t index);
+    size_t size() const;
+    size_t capacity() const;
+    bool empty() const;
+    void clear();
+    void reserve(size_t new_capacity);
+    T* data();
+};
+```
+
+#### Example
+
+```cpp
+webplus::Vector<int> numbers;
+numbers.push(10);
+numbers.push(20);
+numbers.push(30);
+
+for (size_t i = 0; i < numbers.size(); i++) {
+    webplus::print(numbers[i]);
+}
+
+int last = numbers.pop();  // 30
+numbers.clear();
+```
+
+## Logging
+
+### print()
+
+Output to console with automatic type conversion.
+
+```cpp
+template<typename... Args>
+void print(const Args&... args);
+```
+
+#### Example
+
+```cpp
+webplus::print("Count:", 42);
+webplus::print("Pi:", 3.14159, "is irrational");
+```
+
+### warn()
+
+Warning messages prefixed with `[WARN]`.
+
+```cpp
+template<typename... Args>
+void warn(const Args&... args);
+```
+
+#### Example
+
+```cpp
+webplus::warn("Potential memory leak detected");
+```
+
+### error()
+
+Error messages prefixed with `[ERROR]`.
+
+```cpp
+template<typename... Args>
+void error(const Args&... args);
+```
+
+#### Example
+
+```cpp
+webplus::error("Failed to allocate memory");
+```
+
+### log() (Browser Only)
+
+Direct console.log integration for browser environments.
+
+```cpp
+template<typename... Args>
+void log(const Args&... args);
+```
+
+## DOM Access (Browser Only)
+
+### Element
+
+Represents a DOM element with ID-based tracking.
+
+```cpp
+class Element {
+    bool is_valid() const;
+    void text(const String& value);
+    String text() const;
+    void html(const String& value);
+    void set_attribute(const String& name, const String& value);
+    void add_class(const String& className);
+    void remove_class(const String& className);
+    void append(const Element& child);
+    void remove();
+};
+```
+
+### Functions
+
+```cpp
+Element get(const String& selector);
+Element createElement(const String& tagName);
+Element getElementById(const String& id);
+```
+
+#### Example
+
+```cpp
+using namespace webplus::dom;
+
+Element app = get("#app");
+if (app.is_valid()) {
+    app.html("<h1>Hello, Web+!</h1>");
+    
+    Element button = createElement("button");
+    button.text("Click me");
+    button.add_class("btn-primary");
+    button.set_attribute("id", "myButton");
+    
+    app.append(button);
+}
+```
+
+## HTTP Fetch (Browser Only)
+
+### Response
+
+Represents an HTTP response.
+
+```cpp
+class Response {
+    const String& body() const;
+    int status() const;
+    bool ok() const;
+    String json_string() const;
+};
+```
+
+### Promise
+
+Promise-like interface for async operations.
+
+```cpp
+class Promise {
+    template<typename F>
+    void then(F callback);
+};
+```
+
+### fetch()
+
+Make HTTP requests.
+
+```cpp
+Promise fetch(const String& url);
+Promise fetch(const String& url, const String& method, const String& body);
+```
+
+#### Example
+
+```cpp
+webplus::String url = "https://api.example.com/data";
+webplus::Promise response = webplus::fetch(url);
+
+// Note: Full callback support coming in v0.2
+// For now, demonstrates the API structure
+```
+
+## Runtime Initialization
+
+### Functions
+
+```cpp
+namespace webplus {
+    void stdlib_init();      // Initialize standard library
+    void stdlib_cleanup();   // Cleanup and free resources
+}
+
+namespace webplus::wasm {
+    void init();             // Initialize WASM runtime
+    void cleanup();          // Cleanup WASM runtime
+}
+```
+
+#### Example
+
+```cpp
+void main() {
+    webplus::stdlib_init();
+    
+    // Your application code here
+    
+    webplus::stdlib_cleanup();
+}
+```
+
+## Platform Detection
+
+The stdlib automatically detects the target platform:
+
+- `__EMSCRIPTEN__` - Browser/WASM build
+- Otherwise - Native/server build
+
+Platform-specific features are conditionally compiled.
+
+## Performance Characteristics
+
+### Memory
+
+- **String**: O(1) access, O(n) append with reallocation
+- **Vector**: O(1) push (amortized), O(1) access, O(n) reallocation
+- **Arena**: O(1) allocation, O(1) reset
+
+### DOM Operations
+
+- **get/createElement**: O(1) reference tracking
+- **text/html**: O(1) via Emscripten JS interop
+- **append**: O(1) DOM operation
+
+### Network
+
+- **fetch**: Async, non-blocking in browser
+
+## Limitations (v0.1)
+
+The minimal stdlib has these known limitations:
+
+- ❌ No async callback support (callbacks require C++ function pointers with WASM trampolines)
+- ❌ No complete DOM API (only essential operations)
+- ❌ No Map/Set containers
+- ❌ No file I/O
+- ❌ No streams
+- ❌ No SQLite bindings
+
+These will be added in v0.2+.
+
+## Memory Safety
+
+The stdlib provides manual memory management. You are responsible for:
+
+1. Freeing allocated memory with `free_ptr()`
+2. Not accessing freed memory
+3. Not exceeding array bounds
+4. Proper lifetime management of objects
+
+Future versions may include optional bounds checking and borrow hints.
+
+## Threading Model
+
+- **Browser**: Single-threaded main execution
+- **Workers**: Future support via `worker::spawn()`
+- **Server**: WASI thread support (future)
+
+## Include Headers
+
+```cpp
+#include "webplus.hpp"              // All stdlib features
+
+// Or individual headers:
+#include "runtime/memory.hpp"       // Memory primitives
+#include "runtime/vector.hpp"       // Vector container
+#include "runtime/print.hpp"        // Logging functions
+#include "browser/dom.hpp"          // DOM access (browser only)
+#include "browser/fetch.hpp"        // HTTP fetch (browser only)
+```
+
+## Link Flags
+
+When building with Emscripten:
+
+```bash
+emcc main.cpp -o main.js -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 \
+  -I/path/to/stdlib -lembind --bind
+```
+
+## Credits
+
+**Built by:** Samin Yeasar ([@Solez-ai](https://github.com/Solez-ai))  
+**License:** MIT  
+**Version:** 0.1.0

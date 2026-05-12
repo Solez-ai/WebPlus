@@ -1,0 +1,66 @@
+---
+title: 'Standard Library Overview'
+description: 'Introduction and initialization of the Web+ Stdlib'
+---
+
+# Standard Library
+
+The `webplus.hpp` header is the gateway to the entire minimal standard library. It provides high-performance, cross-platform utilities for the modern web.
+
+## Namespace Structure
+
+All standard library features are organized under the `webplus` namespace:
+
+- `webplus`: Core memory, strings, and logging.
+- `webplus::dom`: Browser-only DOM manipulation.
+- `webplus::wasm`: WASM runtime specific controls.
+
+## Lifecycle Management
+
+To ensure proper behavior of memory registries and JS-bridge handles, you must initialize and cleanup the library.
+
+### webplus::stdlib_init()
+Initializes the internal registries for strings, DOM elements, and promises. Should be called at the very beginning of `main()`.
+
+### webplus::stdlib_cleanup()
+Frees global resources and clears registries. Should be called at the end of `main()`.
+
+```cpp
+#include "webplus.hpp"
+
+void main() {
+    webplus::stdlib_init();
+    
+    // Core Logic
+    
+    webplus::stdlib_cleanup();
+}
+```
+
+---
+
+## Logging & Debugging
+
+The stdlib provides variadic logging functions that integrate with the browser console.
+
+| Function | Output Prefix | Usage |
+| :--- | :--- | :--- |
+| `print()` | None | General logging |
+| `warn()` | `[WARN]` | Warning messages |
+| `error()` | `[ERROR]` | High-importance errors |
+| `log()` | None | Alias for print |
+
+### Examples
+
+```cpp
+webplus::print("System online");
+webplus::warn("Low memory: ", available, " bytes");
+webplus::error("Permission denied to ", file_path);
+```
+
+---
+
+## Target Platforms
+
+- **Browsers**: Compiles to WASM/JS. This is the primary target for v0.1.
+- **Server (WASI)**: Compiles to standalone WASM for runtimes like Wasmtime or Wasmer. (Experimental in v0.1).

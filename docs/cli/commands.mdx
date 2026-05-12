@@ -1,0 +1,111 @@
+---
+title: 'CLI Commands'
+description: 'A comprehensive reference of all available Web+ CLI commands'
+---
+
+# CLI Reference
+
+The `webplus` command-line tool is your central interface for developing, building, and deploying Web+ applications. 
+
+## Command Syntax
+
+```bash
+webplus <command> [arguments] [options]
+```
+
+---
+
+## Core Commands
+
+### build
+Compiles Web+ source files into WebAssembly artifacts.
+
+```bash
+webplus build <source> [options]
+```
+- **Arguments**: `<source>` can be a single `.webplus` file or a directory containing multiple files.
+- **Key Options**:
+  - `-o, --output <dir>`: Target directory for artifacts (Default: `./build`).
+  - `--optimize`: Enables O3 optimizations and dead code elimination. Recommended for production.
+  - `--debug`: Includes debug symbols and enables runtime checks (like bounds checking).
+  - `--target <type>`: Specifies the runtime environment (`browser` or `server`).
+
+[Learn more about building →](/cli/build)
+
+### serve
+Starts a local development server with hot-reloading capabilities.
+
+```bash
+webplus serve [directory] [options]
+```
+- **Arguments**: `[directory]` is the static root to serve (Default: current directory).
+- **Key Options**:
+  - `-p, --port <number>`: Port number (Default: `3000`).
+  - `--open`: Opens the application in the default browser automatically.
+
+[Learn more about the dev server →](/cli/serve)
+
+---
+
+## Utility Commands
+
+### init
+Scaffolds a new Web+ project with common directory structures and configuration.
+
+```bash
+webplus init <project-name>
+```
+- Creates a `src/main.webplus`, `build/`, and `webplus.config.json`.
+
+### format
+Standardizes code style across your files according to the Web+ style guide.
+
+```bash
+webplus format <path>
+```
+- Supports glob patterns: `webplus format "src/**/*.webplus"`.
+
+### lint
+Performs static analysis to find potential bugs or style violations.
+
+```bash
+webplus lint <path>
+```
+- Use `--fix` to automatically resolve simple violations.
+
+### version
+Displays the current version of the Web+ CLI and the underlying transpiler.
+
+```bash
+webplus version
+```
+
+### help
+Displays help text for any command.
+
+```bash
+webplus help build
+```
+
+---
+
+## Global Options
+
+The following flags can be used with any command:
+
+- `-h, --help`: Show help information.
+- `-v, --version`: Show version number.
+- `--verbose`: Enable detailed logging for debugging the toolchain itself.
+- `--no-color`: Disable colored output in the terminal.
+
+---
+
+## Exit Codes
+
+| Code | Meaning |
+| :--- | :--- |
+| `0` | Success |
+| `1` | General CLI error (invalid flags, etc.) |
+| `2` | Transpilation error (syntax error in Web+ code) |
+| `3` | Compilation error (Emscripten failure) |
+| `4` | Filesystem error (Permission denied, etc.) |

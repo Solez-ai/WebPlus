@@ -1,0 +1,79 @@
+void test_addition() {
+    int result = 2 + 2;
+    assert(result == 4, "2 + 2 should equal 4");
+}
+
+void test_subtraction() {
+    int result = 10 - 3;
+    assert(result == 7, "10 - 3 should equal 7");
+}
+
+void test_multiplication() {
+    int result = 5 * 6;
+    assert(result == 30, "5 * 6 should equal 30");
+}
+
+void test_string_length() {
+    string text = "Hello";
+    assert(text.length() == 5, "Hello should have 5 characters");
+}
+
+struct Point {
+    int x;
+    int y;
+};
+
+void test_struct_creation() {
+    Point* p = alloc<Point>(1);
+    p->x = 10;
+    p->y = 20;
+    
+    assert(p->x == 10, "Point x should be 10");
+    assert(p->y == 20, "Point y should be 20");
+    
+    free(p);
+}
+
+void test_memory_allocation() {
+    int* numbers = alloc<int>(100);
+    
+    for (int i = 0; i < 100; i++) {
+        numbers[i] = i * 2;
+    }
+    
+    assert(numbers[0] == 0, "First element should be 0");
+    assert(numbers[50] == 100, "Element 50 should be 100");
+    assert(numbers[99] == 198, "Last element should be 198");
+    
+    free(numbers);
+}
+
+void assert(bool condition, string message) {
+    if (!condition) {
+        print("FAIL: " + message);
+        test_fail();
+    } else {
+        print("PASS: " + message);
+    }
+}
+
+void test_fail() {
+    // Marker function for test failure
+}
+
+void run_all_tests() {
+    print("Running Web+ Tests...\n");
+    
+    test_addition();
+    test_subtraction();
+    test_multiplication();
+    test_string_length();
+    test_struct_creation();
+    test_memory_allocation();
+    
+    print("\nAll tests completed!");
+}
+
+void main() {
+    run_all_tests();
+}

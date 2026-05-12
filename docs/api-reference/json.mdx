@@ -1,0 +1,60 @@
+---
+title: 'JSON API'
+description: 'Parsing and serializing data in Web+'
+---
+
+# JSON API
+
+Web+ provides built-in utilities for handling JSON data, which is essential for web communication.
+
+## Serialization
+
+### json(object)
+Converts a Web+ struct into a JSON-formatted `webplus::String`.
+- **Supported Types**: Native primitives, nested structs, and standard containers.
+
+```cpp
+struct User {
+    int id;
+    string name;
+};
+
+void main() {
+    User u = { 1, "Samin" };
+    webplus::String data = webplus::json(u);
+    webplus::print(data.c_str()); // {"id":1,"name":"Samin"}
+}
+```
+
+---
+
+## Parsing
+
+### parseJSON(string)
+Parses a JSON string into an internal object. In v0.1, it is mostly used in the context of route handlers and fetch responses.
+
+```cpp
+webplus::fetch("/api/data").then([](webplus::Response r) {
+    auto obj = webplus::parseJSON(r.body());
+    webplus::print("Status: ", obj["status"].as_string());
+});
+```
+
+---
+
+## JSON Object Methods
+
+When dealing with a parsed JSON object:
+
+- `as_string()`: Returns value as a string.
+- `as_int()`: Returns value as an integer.
+- `as_float()`: Returns value as a float.
+- `is_null()`: Checks if the value is null.
+- `operator[]`: Accesses keys (for objects) or indices (for arrays).
+
+---
+
+## Best Practices
+
+- **Explicit Conversion**: Always call `as_string()` or `as_int()` to convert JSON values to Web+ native types.
+- **Buffer Management**: Parsing JSON can allocate many small strings. Use an `Arena` if you are parsing large or frequent JSON payloads.

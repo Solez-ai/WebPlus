@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web+ Dashboard</title>
+    <style>
+        body {
+            background: #0f172a;
+            color: #f8fafc;
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 2rem;
+            margin: 0;
+        }
+        .dashboard {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #22d3ee;
+        }
+        .metric {
+            background: #1e293b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .metric-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #22d3ee;
+        }
+        .bar-container {
+            background: #334155;
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        .bar {
+            background: #22d3ee;
+            height: 100%;
+            transition: width 0.3s;
+        }
+        #refreshButton {
+            background: #22d3ee;
+            color: #0f172a;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+        #refreshButton:hover {
+            background: #06b6d4;
+        }
+        #toggleUpdates {
+            background: #475569;
+            color: #f8fafc;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #status {
+            margin-top: 1rem;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>Web+ Real-time Dashboard</h1>
+
+        <div class="metric">
+            <div class="metric-label">CPU Usage</div>
+            <div class="metric-value"><span id="cpuValue">0</span>%</div>
+            <div class="bar-container">
+                <div id="cpuBar" class="bar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="metric">
+            <div class="metric-label">Memory Usage</div>
+            <div class="metric-value"><span id="memoryValue">0</span> MB</div>
+            <div class="bar-container">
+                <div id="memoryBar" class="bar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="metric">
+            <div class="metric-label">Network I/O</div>
+            <div class="metric-value"><span id="networkValue">0</span> KB/s</div>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <button id="refreshButton">Refresh Now</button>
+            <button id="toggleUpdates">Pause Updates</button>
+        </div>
+
+        <div id="status"></div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

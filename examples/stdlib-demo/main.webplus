@@ -1,0 +1,48 @@
+// Web+ Minimal Stdlib Demo
+// Demonstrates the essential runtime features of Web+ v0.1
+
+// This example shows:
+// - Memory primitives (int, float, string)
+// - DOM access
+// - Basic functions
+
+void main() {
+    // Initialize Web+ runtime
+    stdlib_init();
+
+    // Memory Primitives Demo
+    int count = 42;
+    float pi = 3.14159;
+    string message = "Hello, Web+!";
+
+    print("Count:", count);
+    print("Pi:", pi);
+    print("Message:", message);
+
+    // String operations
+    string greeting = "Welcome to ";
+    string fullGreeting = greeting + "Web+!";
+    print("Full greeting:", fullGreeting);
+
+    // Number to string conversion
+    string numStr = toString(123);
+    print("Number as string:", numStr);
+
+    // Math functions
+    float result = sqrt(16.0);
+    print("sqrt(16) =", result);
+
+    float randomVal = randomFloat(0.0, 100.0);
+    print("Random value:", randomVal);
+
+    // DOM Access Demo (browser only)
+    dom::Element app = dom::get("#app");
+    if (app.is_valid()) {
+        app.html("<h1>Web+ is running!</h1><p>Standard library initialized successfully</p>");
+    }
+
+    print("Web+ minimal stdlib demo completed!");
+
+    // Cleanup
+    stdlib_cleanup();
+}

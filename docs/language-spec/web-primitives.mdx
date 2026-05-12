@@ -1,0 +1,567 @@
+---
+title: "Web Primitives"
+description: "DOM, HTTP, Fetch, and Workers built into the language"
+---
+
+# Web Primitives
+
+Web+ treats web APIs as **first-class language primitives**, not libraries. This means DOM manipulation, HTTP routing, fetch requests, and workers are built directly into the language syntax.
+
+## DOM Manipulation
+
+### dom::get
+
+Retrieve DOM elements by CSS selector:
+
+```webplus
+dom::Element elem = dom::get("#myElement");
+dom::Element button = dom::get(".submit-button");
+dom::Element first = dom::get("div");
+```
+
+**Signature:**
+```webplus
+dom::Element dom::get(string selector)
+```
+
+**Parameters:**
+- `selector` — CSS selector string
+
+**Returns:**
+- `dom::Element` — DOM element wrapper
+
+**Behavior:**
+- Returns first matching element
+- Equivalent to `document.querySelector()` in JavaScript
+- Returns null element if not found
+
+### Element Methods
+
+#### text()
+
+Get or set element text content:
+
+```webplus
+// Get text
+string content = elem.text();
+
+// Set text
+elem.text("New content");
+```
+
+#### html()
+
+Get or set innerHTML:
+
+```webplus
+// Get HTML
+string markup = elem.html();
+
+// Set HTML
+elem.html("<strong>Bold text</strong>");
+```
+
+#### on()
+
+Attach event listeners:
+
+```webplus
+elem.on("click", [] {
+    // Event handler
+    dom::get("#status").text("Clicked!");
+});
+
+elem.on("mouseover", [] {
+    // Hover handler
+});
+```
+
+**Supported Events:**
+- `click`, `dblclick`
+- `mouseover`, `mouseout`, `mousemove`
+- `keydown`, `keyup`, `keypress`
+- `focus`, `blur`
+- `submit`, `change`, `input`
+
+#### append()
+
+Append child element:
+
+```webplus
+dom::Element parent = dom::get("#container");
+dom::Element child = dom::get("#item");
+
+parent.append(child);
+```
+
+#### remove()
+
+Remove element from DOM:
+
+```webplus
+elem.remove();
+```
+
+### CSS Style Properties
+
+Web+ provides comprehensive CSS style manipulation through the `style` property:
+
+```webplus
+dom::Element modal = dom::get("#modal");
+
+// Display
+modal.style.display = "flex";
+modal.style.display = "none";
+modal.style.display = "block";
+
+// Positioning
+modal.style.position = "absolute";
+modal.style.top = "100px";
+modal.style.left = "50px";
+
+// Sizing
+modal.style.width = "300px";
+modal.style.height = "200px";
+modal.style.minWidth = "100px";
+modal.style.maxWidth = "500px";
+
+// Colors
+modal.style.color = "#ffffff";
+modal.style.background = "#1a1a2e";
+modal.style.backgroundColor = "#16213e";
+modal.style.opacity = "0.8";
+
+// Typography
+modal.style.fontSize = "16px";
+modal.style.fontWeight = "bold";
+modal.style.fontFamily = "Arial, sans-serif";
+modal.style.textAlign = "center";
+
+// Flexbox
+modal.style.flex = "1";
+modal.style.flexDirection = "column";
+modal.style.justifyContent = "center";
+modal.style.alignItems = "center";
+modal.style.gap = "10px";
+modal.style.flexWrap = "wrap";
+
+// Grid
+modal.style.gridTemplateColumns = "1fr 1fr 1fr";
+modal.style.gridTemplateRows = "auto";
+modal.style.gridGap = "20px";
+
+// Border
+modal.style.border = "1px solid #333";
+modal.style.borderRadius = "8px";
+
+// Margin/Padding
+modal.style.margin = "20px";
+modal.style.marginTop = "10px";
+modal.style.padding = "15px";
+modal.style.paddingLeft = "20px";
+
+// Transition/Animation
+modal.style.transition = "all 0.3s ease";
+modal.style.transform = "translateX(10px)";
+
+// Overflow
+modal.style.overflow = "hidden";
+modal.style.overflowX = "auto";
+
+// Cursor
+modal.style.cursor = "pointer";
+```
+
+**Supported CSS Properties:**
+- **Display**: `display`, `visibility`, `opacity`
+- **Positioning**: `position`, `top`, `bottom`, `left`, `right`, `zIndex`
+- **Sizing**: `width`, `height`, `minWidth`, `minHeight`, `maxWidth`, `maxHeight`
+- **Colors**: `color`, `background`, `backgroundColor`, `opacity`, `borderColor`
+- **Typography**: `fontSize`, `fontWeight`, `fontFamily`, `textAlign`, `lineHeight`
+- **Flexbox**: `flex`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`, `gap`
+- **Grid**: `gridTemplateColumns`, `gridTemplateRows`, `gridColumn`, `gridRow`, `gridGap`
+- **Borders**: `border`, `borderRadius`, `borderWidth`, `borderStyle`, `borderColor`
+- **Spacing**: `margin`, `marginTop`, `marginBottom`, `marginLeft`, `marginRight`, `padding`, etc.
+- **Effects**: `transition`, `transform`, `animation`, `boxShadow`
+- **Layout**: `overflow`, `cursor`, `pointerEvents`
+
+#### style.display
+
+Show/hide elements:
+
+```webplus
+dom::Element modal = dom::get("#modal");
+modal.style.display = "flex";  // Show as flex container
+modal.style.display = "none";   // Hide element
+```
+
+#### style.on()
+
+Event callbacks now receive the Event object:
+
+```webplus
+elem.on("click", [](dom::Event e) {
+    dom::get("#output").text("Clicked: " + e.target.id);
+});
+
+elem.on("keydown", [](dom::KeyboardEvent e) {
+    if (e.key == "Enter") {
+        // Handle enter key
+    }
+});
+```
+
+### Complete Example
+
+```webplus
+void main() {
+    dom::Element input = dom::get("#nameInput");
+    dom::Element button = dom::get("#submitButton");
+    dom::Element output = dom::get("#output");
+    
+    button.on("click", [] {
+        string name = input.text();
+        output.text("Hello, " + name + "!");
+    });
+}
+```
+
+---
+
+## HTTP Routing (Server-Side)
+
+### route Keyword
+
+Define HTTP endpoints:
+
+```webplus
+route GET "/path" -> Response {
+    // Handler code
+    return response;
+}
+```
+
+**Syntax:**
+```webplus
+route METHOD "path" -> Response {
+    // Handler body
+}
+```
+
+### HTTP Methods
+
+```webplus
+route GET "/users" -> Response { }
+route POST "/users" -> Response { }
+route PUT "/users/:id" -> Response { }
+route DELETE "/users/:id" -> Response { }
+route PATCH "/users/:id" -> Response { }
+```
+
+### Route Parameters
+
+Extract dynamic path segments:
+
+```webplus
+route GET "/api/user/:id" -> Response {
+    int userId = param("id");
+    return json({ "id": userId });
+}
+
+route GET "/post/:category/:slug" -> Response {
+    string category = param("category");
+    string slug = param("slug");
+    // ...
+}
+```
+
+**Parameter Syntax:**
+- `:paramName` in path
+- `param("paramName")` to extract
+
+### Response Types
+
+#### json()
+
+Return JSON response:
+
+```webplus
+route GET "/api/data" -> Response {
+    return json({
+        "status": "ok",
+        "data": [1, 2, 3]
+    });
+}
+```
+
+#### Response::text()
+
+Return plain text:
+
+```webplus
+route GET "/health" -> Response {
+    return Response::text("OK");
+}
+```
+
+#### Response::status()
+
+Return HTTP status code:
+
+```webplus
+route GET "/forbidden" -> Response {
+    return Response::status(403);
+}
+```
+
+#### Response::not_found()
+
+Return 404:
+
+```webplus
+route GET "/api/user/:id" -> Response {
+    User* user = db::find<User>(param("id"));
+    
+    if (!user) {
+        return Response::not_found();
+    }
+    
+    return json(user);
+}
+```
+
+### Complete Example
+
+```webplus
+struct User {
+    int id;
+    string name;
+    string email;
+};
+
+route GET "/api/users" -> Response {
+    // List all users
+    return json({ "users": [] });
+}
+
+route GET "/api/user/:id" -> Response {
+    int userId = param("id");
+    
+    User* user = alloc<User>(1);
+    user->id = userId;
+    user->name = "Samin Yeasar";
+    user->email = "sheditzofficial918@gmail.com";
+    
+    Response res = json(user);
+    free(user);
+    
+    return res;
+}
+
+route POST "/api/user" -> Response {
+    // Create new user
+    return json({ "success": true });
+}
+```
+
+---
+
+## Fetch API
+
+### fetch()
+
+Make HTTP requests:
+
+```webplus
+fetch("/api/data")
+    .then([](Response r) {
+        string data = r.json()["message"];
+        dom::get("#output").text(data);
+    });
+```
+
+**Signature:**
+```webplus
+Future<Response> fetch(string url)
+```
+
+**Parameters:**
+- `url` — URL to request
+
+**Returns:**
+- `Future<Response>` — Async response
+
+### Response Methods
+
+#### json()
+
+Parse JSON response:
+
+```webplus
+fetch("/api/data")
+    .then([](Response r) {
+        auto data = r.json();
+        string message = data["message"];
+    });
+```
+
+#### text()
+
+Get response as text:
+
+```webplus
+fetch("/api/text")
+    .then([](Response r) {
+        string content = r.text();
+    });
+```
+
+### Error Handling
+
+```webplus
+fetch("/api/data")
+    .then([](Response r) {
+        // Success
+    })
+    .catch([](Error e) {
+        // Handle error
+        dom::get("#error").text("Request failed");
+    });
+```
+
+---
+
+## Web Workers
+
+### worker::spawn
+
+Create background worker:
+
+```webplus
+worker w = worker::spawn([] {
+    return heavyComputation();
+});
+```
+
+**Signature:**
+```webplus
+worker worker::spawn(Function callback)
+```
+
+**Parameters:**
+- `callback` — Function to execute in worker
+
+**Returns:**
+- `worker` — Worker handle
+
+### join()
+
+Wait for worker completion:
+
+```webplus
+worker w = worker::spawn([] {
+    return fib(40);
+});
+
+int result = w.join();  // Blocks until complete
+```
+
+### detach()
+
+Run worker without waiting:
+
+```webplus
+worker w = worker::spawn([] {
+    // Background task
+});
+
+w.detach();  // Don't wait for completion
+```
+
+### Complete Example
+
+```webplus
+int fib(int n) {
+    if (n <= 1) return n;
+    return fib(n - 1) + fib(n - 2);
+}
+
+void main() {
+    dom::Element status = dom::get("#status");
+    status.text("Calculating...");
+    
+    worker w = worker::spawn([] {
+        return fib(40);
+    });
+    
+    int result = w.join();
+    
+    status.text("Result: " + result);
+}
+```
+
+---
+
+## Memory Considerations
+
+### Web Primitives and Memory
+
+All web primitive objects use manual memory management:
+
+```webplus
+// DOM elements are lightweight references
+dom::Element elem = dom::get("#app");  // No allocation needed
+
+// Structs used in routes require manual management
+route GET "/api/user" -> Response {
+    User* user = alloc<User>(1);
+    // ... setup user ...
+    Response res = json(user);
+    free(user);  // Required!
+    return res;
+}
+
+// Workers share memory model
+worker w = worker::spawn([] {
+    int* data = alloc<int>(1000);
+    // ... process data ...
+    free(data);
+    return result;
+});
+```
+
+### Performance Notes
+
+- **DOM access** crosses WASM↔JS boundary (some overhead)
+- **HTTP routes** are compiled to WASM with minimal JS glue
+- **Fetch** is async and non-blocking
+- **Workers** run in separate threads with isolated memory
+
+---
+
+## Compilation Details
+
+Web primitives are transpiled to Emscripten bindings:
+
+```webplus
+dom::get("#app").text("Hello");
+```
+
+Generates:
+
+```cpp
+val::global("document")
+    .call<val>("querySelector", "#app")
+    .call<void>("setAttribute", "textContent", "Hello");
+```
+
+This ensures minimal overhead while maintaining WebAssembly performance.
+
+---
+
+## See Also
+
+- [DOM API Reference](/api-reference/dom)
+- [HTTP API Reference](/api-reference/http)
+- [Fetch API Reference](/api-reference/fetch)
+- [Workers API Reference](/api-reference/workers)

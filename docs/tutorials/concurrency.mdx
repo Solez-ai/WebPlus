@@ -1,0 +1,93 @@
+---
+title: 'Concurrency'
+description: 'Running background tasks with Web Workers'
+---
+
+# Concurrency Tutorial
+
+WebAssembly allows for multi-threaded execution in the browser via Web Workers. Web+ abstracts this complexity into a simple `worker` primitive.
+
+## Why use Workers?
+
+The browser's main thread handles both the UI and JavaScript execution. If you run a heavy calculation on the main thread, the entire page will freeze. Workers let you run these tasks in the background, keeping the UI responsive.
+
+## 1. Defining a Background Task
+
+In this tutorial, we'll calculate a large Fibonacci number. Because the recursive implementation is computationally expensive, it's a perfect candidate for a worker.
+
+```webplus
+int fib(int n) {
+    if (n <= 1) return n;
+    return fib(n - 1) + fib(n - 2);
+}
+```
+
+---
+
+## 2. Spawning the Worker
+
+Use `worker::spawn` and pass a lambda function containing the code you want to run:
+
+```webplus
+void main() {
+    dom::Element status = dom::get("#status");
+    status.text("Starting calculation...");
+
+    // Start the worker
+    worker w = worker::spawn([] {
+        int res = fib(42);
+        return res;
+    });
+}
+```
+
+---
+
+## 3. Retaining the Result
+
+To get the result back from the worker, use the `join()` method. This will wait for the thread to complete and return the value:
+
+```webplus
+void main() {
+    worker w = worker::spawn([] { return fib(42); });
+
+    // Wait and get the result
+    int finalResult = w.join();
+    
+    dom::get("#output").text("The answer is: " + toString(finalResult));
+}
+```
+
+---
+
+## 4. Parallel Workers
+
+You can even run multiple workers at once to utilize multiple CPU cores:
+
+```webplus
+void main() {
+    worker w1 = worker::spawn([] { return fib(35); });
+    worker w2 = worker::spawn([] { return fib(36); });
+
+    // Both are running in parallel now
+    int r1 = w1.join();
+    int r2 = w2.join();
+    
+    webplus::print("Sum of tasks: ", r1 + r2);
+}
+```
+
+---
+
+## Best Practices
+
+### Blocking vs. Non-blocking
+The `join()` method is **blocking**. If you call `join()` on the main thread, the UI will still freeze until the worker is done.
+
+**Tip**: For high-performance UIs, consider using a messaging pattern (coming in v0.2) or only `join()` when you are absolutely sure the worker has finished (via polling or event callbacks).
+
+### Memory Safety
+Remember that variables declared inside a worker are private to that thread. If you need to share large amounts of data, use heap-allocated pointers, but be careful of race conditions!
+
+## Next Steps
+Now that your app is fast and responsive, learn how to manage its resources in the [Memory Management Tutorial](/tutorials/memory-management).

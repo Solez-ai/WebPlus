@@ -1,0 +1,41 @@
+// Simplified Web+ Demo - Works with current transpiler
+
+void main() {
+    // Variables
+    int count = 0;
+    float pi = 3.14159;
+    string message = "Hello, Web+!";
+
+    // Print
+    print("Count:", count);
+    print("Pi:", pi);
+    print("Message:", message);
+
+    // String operations
+    string greeting = "Welcome to ";
+    string full = greeting + "Web+!";
+    print("Full greeting:", full);
+
+    // Number conversion
+    string numStr = toString(123);
+    print("As string:", numStr);
+
+    // Math functions
+    float root = sqrt(16.0);
+    print("sqrt(16) =", root);
+
+    float r = randomFloat(0.0, 100.0);
+    print("Random:", r);
+
+    // DOM access
+    dom::Element app = dom::get("#app");
+    if (app.is_valid()) {
+        app.html("<h1>Web+ is running!</h1><p>All features working!</p>");
+    }
+
+    // Style
+    dom::Element modal = dom::get("#modal");
+    modal.style.display = "flex";
+
+    print("Demo complete!");
+}

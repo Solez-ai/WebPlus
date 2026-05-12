@@ -1,0 +1,49 @@
+---
+title: 'Timers API'
+description: 'Scheduling tasks in the browser runtime'
+---
+
+# Timers API
+
+Schedule code execution using the browser's high-resolution timer.
+
+## Functions
+
+### set_timeout(callback, delay_ms)
+Executes a function once after a specified delay.
+- **Returns**: A timer handle (integer).
+
+### set_interval(callback, delay_ms)
+Repeatedly executes a function at a specified interval.
+- **Returns**: A timer handle (integer).
+
+### clear_timeout(handle)
+Cancels a timer previously set with `set_timeout`.
+
+### clear_interval(handle)
+Cancels a timer previously set with `set_interval`.
+
+---
+
+## Example: Pulsing UI
+
+```cpp
+using namespace webplus::dom;
+
+void main() {
+    Element logo = get("#logo");
+    
+    webplus::set_interval([logo] {
+        static bool bright = true;
+        if (bright) logo.add_class("dim");
+        else logo.remove_class("dim");
+        bright = !bright;
+    }, 500);
+}
+```
+
+---
+
+## Performance Note
+
+Timers in Web+ are mapped to the browser's `setTimeout` and `setInterval`. For high-performance animation loops, consider using `requestAnimationFrame` (planned for v0.2).

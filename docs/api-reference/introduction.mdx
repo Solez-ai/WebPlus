@@ -1,0 +1,43 @@
+---
+title: 'API Introduction'
+description: 'Overview of the Web+ API surface'
+---
+
+# API Reference
+
+The Web+ API reference provides detailed documentation for all built-in types, functions, and primitives.
+
+## Structure
+
+The documentation is divided into the following sections:
+
+- **Standard Library**: Core memory management, containers, and utilities.
+- **DOM Primitives**: First-class support for browser element manipulation.
+- **Fetch & Network**: Asynchronous HTTP requests and streaming data.
+- **Concurrency**: Background workers and multi-threading tools.
+- **JSON & Data**: Parsing and serialization helpers.
+
+## Usage
+
+To use any of these APIs, include the main header:
+
+```cpp
+#include "webplus.hpp"
+```
+
+Or include specific headers for faster compilation:
+
+```cpp
+#include "runtime/memory.hpp"
+#include "browser/dom.hpp"
+```
+
+## Performance
+
+All Web+ APIs are designed with a **low-overhead philosophy**. Most operations map directly to WebAssembly instructions or highly optimized JavaScript bridge calls.
+
+---
+
+## v0.1 Status
+
+This reference covers the features available in the current MVP (v0.1). Check the roadmap in individual sections for upcoming features in v0.2 and beyond.

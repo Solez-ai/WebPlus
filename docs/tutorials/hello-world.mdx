@@ -1,0 +1,76 @@
+---
+title: 'Hello World'
+description: 'Build your first Web+ application'
+---
+
+# Hello World Tutorial
+
+In this tutorial, we will create a simple "Hello World" application that demonstrates the core workflow of Web+ and basic DOM manipulation.
+
+## 1. Create your source file
+
+Create a new directory for your project and create a file named `main.webplus`:
+
+```webplus
+// Web+ Hello World
+void main() {
+    // 1. Get a handle to the DOM element with id "app"
+    dom::Element app = dom::get("#app");
+    
+    // 2. Set its text content
+    app.text("Hello, Web+! This is running in WebAssembly.");
+}
+```
+
+## 2. Prepare an HTML entry point
+
+Web+ needs an HTML file to host the WebAssembly module. While the `build` command can generate one, let's create a custom `index.html` to understand how it works:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My First Web+ App</title>
+</head>
+<body>
+    <div id="app">Loading...</div>
+    <!-- The compiled JS glue will be named main.js by default -->
+    <script src="main.js"></script>
+</body>
+</html>
+```
+
+## 3. Build the project
+
+Open your terminal and run the build command:
+
+```bash
+webplus build main.webplus -o build
+```
+
+The CLI will:
+1.  Verify your Web+ syntax.
+2.  Transpile and compile your code.
+3.  Output `main.js` and `main.wasm` into the `build/` folder.
+
+## 4. Run it!
+
+Start the development server to see your application in action:
+
+```bash
+webplus serve build --open
+```
+
+You should see "**Hello, Web+! This is running in WebAssembly.**" replacing the "Loading..." text on your screen.
+
+---
+
+## What did we learn?
+
+1.  **Selection**: `dom::get` is the primary way to interact with existing elements on a page.
+2.  **Manipulation**: `app.text()` is a high-performance method that safely updates the DOM.
+3.  **WASM Execution**: Your code isn't being interpreted; it's being executed by the browser's WebAssembly engine at near-native speeds.
+
+## Next Steps
+
+Now that you've mastered the basics, try the [DOM Manipulation Tutorial](/tutorials/dom-manipulation) to learn how to create elements and handle events!

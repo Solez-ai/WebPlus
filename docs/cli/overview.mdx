@@ -1,0 +1,266 @@
+---
+title: "CLI Overview"
+description: "Web+ command-line interface for building and running applications"
+---
+
+# CLI Overview
+
+The `webplus` CLI is the primary tool for working with Web+ applications. It provides commands for building, running, serving, formatting, linting, testing, and packaging Web+ code.
+
+## Installation
+
+The CLI is installed as part of the Web+ installation:
+
+```bash
+cd webplus/cli
+npm link
+
+# Verify
+webplus --version
+```
+
+## Usage
+
+```bash
+webplus <command> [options]
+```
+
+## Available Commands
+
+### build
+
+Compile Web+ source to WebAssembly:
+
+```bash
+webplus build <source> [options]
+```
+
+**Options:**
+- `-o, --output <path>` — Output directory (default: `./build`)
+- `--optimize` — Enable optimizations (slower build, faster execution)
+
+**Examples:**
+```bash
+# Build single file
+webplus build main.webplus
+
+# Build directory
+webplus build src/ -o dist
+
+# Build with optimizations
+webplus build src/ --optimize
+```
+
+[Full build documentation →](/cli/build)
+
+### run
+
+Execute compiled WebAssembly:
+
+```bash
+webplus run <target> [options]
+```
+
+**Options:**
+- `--browser` — Run in browser
+- `--server` — Run as WASI server (v0.2+)
+
+**Examples:**
+```bash
+# Run in browser
+webplus run build --browser
+
+# Run as server (planned)
+webplus run build --server
+```
+
+### serve
+
+Development server with hot-reload:
+
+```bash
+webplus serve [source] [options]
+```
+
+**Options:**
+- `-p, --port <port>` — Server port (default: `3000`)
+- `--open` — Open browser automatically
+
+**Examples:**
+```bash
+# Serve current directory
+webplus serve
+
+# Serve specific directory
+webplus serve src --port 8080
+
+# Auto-open browser
+webplus serve src --open
+```
+
+[Full serve documentation →](/cli/serve)
+
+### format
+
+Format Web+ source code:
+
+```bash
+webplus format <files...> [options]
+```
+
+**Options:**
+- `--check` — Check without modifying
+
+**Examples:**
+```bash
+# Format files
+webplus format src/**/*.webplus
+
+# Check formatting
+webplus format src/**/*.webplus --check
+```
+
+Note: Fully implemented in v0.2
+
+### lint
+
+Static analysis and linting:
+
+```bash
+webplus lint <files...> [options]
+```
+
+**Options:**
+- `--fix` — Auto-fix issues
+
+**Examples:**
+```bash
+# Lint files
+webplus lint src/**/*.webplus
+
+# Auto-fix
+webplus lint src/**/*.webplus --fix
+```
+
+Note: Fully implemented in v0.2
+
+### test
+
+Run unit tests:
+
+```bash
+webplus test [pattern] [options]
+```
+
+**Options:**
+- `--watch` — Watch mode
+
+**Examples:**
+```bash
+# Run all tests
+webplus test
+
+# Run specific pattern
+webplus test **/*.test.webplus
+
+# Watch mode
+webplus test --watch
+```
+
+Note: Fully implemented in v0.2
+
+### package
+
+Create distributable module:
+
+```bash
+webplus package <directory> [options]
+```
+
+**Options:**
+- `-o, --output <path>` — Output file
+
+**Examples:**
+```bash
+# Package project
+webplus package . -o dist/module.wasm
+```
+
+Note: Fully implemented in v0.2
+
+## Global Options
+
+All commands support:
+
+```bash
+-h, --help     # Show help
+-v, --version  # Show version
+```
+
+## Configuration
+
+### Project Config
+
+Create `webplus.config.json` in project root:
+
+```json
+{
+  "buildOptions": {
+    "optimize": true,
+    "output": "./dist"
+  },
+  "serveOptions": {
+    "port": 3000
+  }
+}
+```
+
+### Environment Variables
+
+- `WEBPLUS_EMCC_PATH` — Custom Emscripten path
+- `WEBPLUS_BUILD_DIR` — Default build directory
+
+## Exit Codes
+
+- `0` — Success
+- `1` — General error
+- `2` — Invalid arguments
+- `3` — Build error
+- `4` — Runtime error
+
+## Debugging
+
+Enable verbose output:
+
+```bash
+webplus build src --verbose
+```
+
+View generated C++ code:
+
+```bash
+webplus build src -o build
+# Check build/*.cpp files
+```
+
+## Performance
+
+### Build Performance
+
+- **Single file:** ~100-500ms (transpile) + 1-3s (Emscripten)
+- **Large project:** ~500ms-2s (transpile) + 3-10s (Emscripten)
+
+Optimize for faster builds:
+- Use `--optimize` only for production
+- Exclude unnecessary files from build
+
+### Serve Performance
+
+- **Hot-reload:** ~100-500ms per file change
+- **Auto-rebuild:** Watches all `.webplus` files
+
+## See Also
+
+- [Build Command](/cli/build)
+- [Serve Command](/cli/serve)
+- [Quick Start](/quickstart)

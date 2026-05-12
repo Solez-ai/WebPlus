@@ -1,0 +1,72 @@
+---
+title: 'HTTP API (Server-Side)'
+description: 'Server-side routing and response handling'
+---
+
+# HTTP API
+
+The HTTP API is used for building server-side applications and microservices using the `route` primitive.
+
+## Routing
+
+### route METHOD "path"
+Defines an endpoint. Supported methods: `GET`, `POST`, `PUT`, `DELETE`.
+
+```cpp
+route GET "/api/status" -> Response {
+    return json({ "status": "online" });
+}
+```
+
+### URL Parameters
+Use the `:` prefix to define dynamic parameters.
+
+```cpp
+route GET "/user/:id" -> Response {
+    int userId = param("id");
+    return json({ "id": userId });
+}
+```
+
+---
+
+## Response Helpers
+
+The following static methods on `Response` (or global helpers) are used to return data:
+
+### json(object)
+Serializes a struct or map into a JSON response.
+
+### Response::text(string)
+Returns a plain text response with `200 OK`.
+
+### Response::status(code)
+Returns an empty response with the specified HTTP status code.
+
+### Response::not_found()
+Calculates and returns a `404 Not Found` response.
+
+---
+
+## Example: Simple API
+
+```cpp
+struct Version {
+    string v;
+};
+
+route GET "/version" -> Response {
+    Version* ver = webplus::alloc<Version>(1);
+    ver->v = "0.1.0";
+    
+    Response r = json(ver);
+    webplus::free_ptr(ver);
+    return r;
+}
+```
+
+---
+
+## Platform Note
+
+The server-side HTTP API requires a **WASI-compatible runtime** or a specialized Web+ server host. In v0.1, this is experimental and best used for conceptualizing microservices.

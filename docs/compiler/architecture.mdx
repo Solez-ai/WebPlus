@@ -1,0 +1,47 @@
+---
+title: "Compiler Architecture"
+description: "How Web+ source becomes WebAssembly"
+---
+
+# Compiler Architecture
+
+The Web+ compiler is currently a **transpiler-based system** (v0.1) designed for rapid development and compatibility with the existing Emscripten ecosystem.
+
+## Compilation Pipeline
+
+The compilation process consists of four main stages:
+
+### 1. Lexical Analysis & Parsing
+- **Input**: `.webplus` source files.
+- **Process**: The parser tokenizes the source and builds an Abstract Syntax Tree (AST).
+- **Tooling**: Built in TypeScript for the node-based CLI.
+
+### 2. AST Transformation
+- The AST is analyzed for type safety and semantic correctness.
+- Web-native primitives (like `route` and `worker`) are expanded into internal representations.
+
+### 3. C++ Code Generation
+- The AST is converted into highly optimized, Emscripten-compatible C++17 code.
+- **Header Injection**: Necessary standard library headers and runtime glue are automatically included.
+
+### 4. Emscripten Compilation
+- **Process**: The generated C++ is piped into `emcc`.
+- **Output**: Binary WebAssembly (`.wasm`), JavaScript glue (`.js`), and optionally an HTML runner.
+
+---
+
+## The Runtime Bridge
+
+Web+ uses a specialized bridge to communicate between the WASM linear memory and the JavaScript environment.
+
+- **ID Tracking**: DOM elements and Promises are assigned IDs to avoid pointer corruption across the boundary.
+- **Trampolines**: C++ callbacks are wrapped in WASM trampolines to allow JS events to trigger Web+ code.
+
+---
+
+## Roadmap: Native LLVM Backend
+
+In future versions (v0.2+), the intermediate C++ step will be removed. The Web+ compiler will target **LLVM IR** directly, allowing for:
+- Faster compilation times.
+- Better optimization of web-specific primitives.
+- Smaller binary sizes without C++ runtime overhead.

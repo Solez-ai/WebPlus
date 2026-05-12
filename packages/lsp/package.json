@@ -1,0 +1,21 @@
+{
+    "name": "@webplus/lsp",
+    "version": "0.1.0",
+    "description": "Web+ Language Server Protocol implementation",
+    "main": "dist/server.js",
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc --watch"
+    },
+    "dependencies": {
+        "@solez-ai/transpiler": "^0.1.1",
+        "vscode-languageserver": "^9.0.1"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "typescript": "^5.3.0"
+    },
+    "keywords": ["webplus", "lsp", "language-server"],
+    "author": "Samin Yeasar"
+}

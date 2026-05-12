@@ -1,0 +1,36 @@
+---
+title: "Edge Deployment"
+description: "Running Web+ at the network edge"
+---
+
+# Edge Deployment
+
+Web+ is uniquely suited for Edge computing due to its fast startup times and low memory footprint.
+
+## Edge Runtimes
+
+- **Cloudflare Workers**: Use Web+ to build high-performance handlers.
+- **Vercel Edge Functions**: Deploy latency-critical logic.
+- **Supabase Edge Functions**: Run backend logic closer to your users.
+
+## Why Web+ for Edge?
+
+1. **Cold Start**: WASM modules start in microseconds compared to milliseconds for Node.js.
+2. **Security**: The WASM sandbox provides strong isolation.
+3. **Footprint**: Compiled binaries are significantly smaller than equivalent containers or JS bundles.
+
+---
+
+## Example Handler
+
+```cpp
+route GET "/edge-ping" -> Response {
+    return Response::text("Pong from the edge!");
+}
+```
+
+## Deployment steps
+
+1. Build for server target.
+2. Upload `.wasm` to your edge provider.
+3. Use the provider's JS glue (or Web+'s generated glue) to handle requests.

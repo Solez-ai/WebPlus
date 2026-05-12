@@ -1,0 +1,47 @@
+{
+  "name": "webplus",
+  "version": "0.1.0",
+  "description": "Web+ - A C++-inspired systems-level language for the web that compiles to WebAssembly",
+  "private": true,
+  "workspaces": [
+    "transpiler",
+    "vscode-extension",
+    "packages/*",
+    "playground"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "build-examples": "node scripts/build-examples.js",
+    "verify-examples": "node scripts/verify-examples.js",
+    "docs:dev": "cd docs && npm run dev",
+    "docs:build": "cd docs && npx mintlify build"
+  },
+  "keywords": [
+    "webplus",
+    "web+",
+    "webassembly",
+    "wasm",
+    "systems-language",
+    "compiler",
+    "transpiler",
+    "c++"
+  ],
+  "author": "Samin Yeasar <sheditzofficial918@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Solez-ai/webplus"
+  },
+  "homepage": "https://github.com/Solez-ai/webplus#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@solez-ai/transpiler": "^0.1.0",
+    "child_process": "^1.0.2",
+    "path": "^0.12.7",
+    "vsce": "1.97.0",
+    "vscode": "^1.1.34"
+  }
+}

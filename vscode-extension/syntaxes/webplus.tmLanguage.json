@@ -1,0 +1,178 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Web+",
+    "scopeName": "source.webplus",
+    "patterns": [
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#types"
+        },
+        {
+            "include": "#web-primitives"
+        },
+        {
+            "include": "#memory-primitives"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#numbers"
+        },
+        {
+            "include": "#functions"
+        },
+        {
+            "include": "#routes"
+        },
+        {
+            "include": "#operators"
+        }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line.double-slash.webplus",
+                    "match": "//.*$"
+                },
+                {
+                    "name": "comment.block.webplus",
+                    "begin": "/\\*",
+                    "end": "\\*/"
+                }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.webplus",
+                    "match": "\\b(if|else|while|for|return|break|continue|switch|case|default)\\b"
+                },
+                {
+                    "name": "keyword.other.webplus",
+                    "match": "\\b(struct|route|worker|const|void)\\b"
+                },
+                {
+                    "name": "storage.modifier.webplus",
+                    "match": "\\b(static|extern|inline)\\b"
+                }
+            ]
+        },
+        "types": {
+            "patterns": [
+                {
+                    "name": "storage.type.primitive.webplus",
+                    "match": "\\b(int|float|double|bool|char|string|void)\\b"
+                },
+                {
+                    "name": "storage.type.web.webplus",
+                    "match": "\\b(dom::Element|Response|Future|worker)\\b"
+                }
+            ]
+        },
+        "web-primitives": {
+            "patterns": [
+                {
+                    "name": "support.function.web.webplus",
+                    "match": "\\b(dom::get|fetch|json|param)\\b"
+                },
+                {
+                    "name": "support.function.worker.webplus",
+                    "match": "\\b(worker::spawn|join|detach)\\b"
+                },
+                {
+                    "name": "support.class.response.webplus",
+                    "match": "\\b(Response::text|Response::status|Response::not_found)\\b"
+                }
+            ]
+        },
+        "memory-primitives": {
+            "patterns": [
+                {
+                    "name": "support.function.memory.webplus",
+                    "match": "\\b(alloc|free|stack|arena)\\b"
+                }
+            ]
+        },
+        "routes": {
+            "patterns": [
+                {
+                    "name": "keyword.control.route.webplus",
+                    "match": "\\b(route)\\b"
+                },
+                {
+                    "name": "constant.language.http-method.webplus",
+                    "match": "\\b(GET|POST|PUT|DELETE|PATCH)\\b"
+                }
+            ]
+        },
+        "strings": {
+            "patterns": [
+                {
+                    "name": "string.quoted.double.webplus",
+                    "begin": "\"",
+                    "end": "\"",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.webplus",
+                            "match": "\\\\."
+                        }
+                    ]
+                },
+                {
+                    "name": "string.quoted.single.webplus",
+                    "begin": "'",
+                    "end": "'",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.webplus",
+                            "match": "\\\\."
+                        }
+                    ]
+                }
+            ]
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "name": "constant.numeric.decimal.webplus",
+                    "match": "\\b\\d+(\\.\\d+)?([eE][+-]?\\d+)?\\b"
+                },
+                {
+                    "name": "constant.numeric.hex.webplus",
+                    "match": "\\b0[xX][0-9a-fA-F]+\\b"
+                }
+            ]
+        },
+        "functions": {
+            "patterns": [
+                {
+                    "name": "entity.name.function.webplus",
+                    "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()"
+                }
+            ]
+        },
+        "operators": {
+            "patterns": [
+                {
+                    "name": "keyword.operator.webplus",
+                    "match": "(\\+|\\-|\\*|\\/|%|==|!=|<|>|<=|>=|&&|\\|\\||!|&|\\|)"
+                },
+                {
+                    "name": "keyword.operator.assignment.webplus",
+                    "match": "(=|\\+=|\\-=|\\*=|\\/=|%=)"
+                },
+                {
+                    "name": "keyword.operator.pointer.webplus",
+                    "match": "(\\*|&|->|\\.)"
+                }
+            ]
+        }
+    }
+}

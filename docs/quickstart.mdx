@@ -1,0 +1,204 @@
+---
+title: "Quick Start"
+description: "Get started with Web+ in minutes"
+---
+
+# Quick Start
+
+This guide will help you install Web+ and build your first application.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- **Node.js** v18 or higher
+- **Emscripten SDK** (for WebAssembly compilation)
+- A code editor (VS Code recommended)
+
+## Install Emscripten
+
+Web+ v0.1 uses Emscripten to compile C++ to WebAssembly. Install it:
+
+```bash
+# Clone Emscripten SDK
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+
+# Install and activate latest
+./emsdk install latest
+./emsdk activate latest
+
+# Add to PATH (add to ~/.bashrc or ~/.zshrc)
+source ./emsdk_env.sh
+```
+
+Verify installation:
+
+```bash
+emcc --version
+```
+
+## Install Web+
+
+Install Web+ globally via npm:
+
+```bash
+cd webplus
+npm install
+npm run build
+
+# Link CLI globally
+cd cli
+npm link
+```
+
+Verify installation:
+
+```bash
+webplus --version
+```
+
+You should see: `web+ v0.1.0`
+
+## Your First Program
+
+Create a new file `hello.webplus`:
+
+```webplus
+void main() {
+    dom::get("#app").text("Hello, Web+!");
+}
+```
+
+## Build
+
+Compile your Web+ code to WebAssembly:
+
+```bash
+webplus build hello.webplus -o build
+```
+
+This will:
+1. Transpile Web+ → C++
+2. Compile C++ → WebAssembly with Emscripten
+3. Generate an HTML runner
+
+## Run
+
+Open `build/index.html` in your browser, or use the dev server:
+
+```bash
+webplus serve . --port 3000
+```
+
+Navigate to `http://localhost:3000` to see your app running!
+
+## What Just Happened?
+
+1. **Transpilation**: Web+ source was parsed and converted to Emscripten-compatible C++
+2. **Compilation**: C++ was compiled to optimized WebAssembly `.wasm` file
+3. **Execution**: Your WebAssembly module runs in the browser with minimal JS glue
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Language Overview" icon="book" href="/language-spec/overview">
+    Learn Web+ syntax, types, and features
+  </Card>
+  <Card title="Tutorials" icon="graduation-cap" href="/tutorials/hello-world">
+    Follow step-by-step tutorials
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/stdlib">
+    Explore the standard library
+  </Card>
+  <Card title="Examples" icon="folder-open" href="https://github.com/Solez-ai/webplus/tree/main/examples">
+    Browse example projects
+  </Card>
+</CardGroup>
+
+## Development Workflow
+
+For active development with hot-reload:
+
+```bash
+# Start dev server with auto-rebuild
+webplus serve src --port 3000
+
+# Edit your .webplus files
+# Changes automatically trigger rebuild
+```
+
+## Project Structure
+
+A typical Web+ project:
+
+```
+my-project/
+├── src/
+│   ├── main.webplus      # Entry point
+│   └── utils.webplus     # Modules
+├── build/                # Build output
+│   ├── output.wasm
+│   ├── output.js
+│   └── index.html
+└── package.json
+```
+
+## Common Commands
+
+```bash
+# Build project
+webplus build src -o build
+
+# Serve with hot-reload
+webplus serve src --port 3000
+
+# Run compiled output
+webplus run build --browser
+
+# Format code
+webplus format src/**/*.webplus
+
+# Lint code
+webplus lint src/**/*.webplus
+```
+
+## Troubleshooting
+
+### Emscripten not found
+
+Ensure Emscripten is in your PATH:
+
+```bash
+which emcc
+```
+
+If not found, run:
+
+```bash
+source /path/to/emsdk/emsdk_env.sh
+```
+
+### Build fails
+
+Check that:
+- All `.webplus` files have valid syntax
+- Emscripten is properly installed
+- You have write permissions to output directory
+
+### Module fails to load
+
+Check browser console for errors. Ensure:
+- WebAssembly is enabled in your browser
+- Files are served over HTTP (not file://)
+- No CORS errors (use `webplus serve`)
+
+## Getting Help
+
+- **GitHub Issues**: [Report bugs](https://github.com/Solez-ai/webplus/issues)
+- **Documentation**: Browse this site for comprehensive guides
+- **Examples**: Learn from [example projects](https://github.com/Solez-ai/webplus/tree/main/examples)
+
+---
+
+**Ready to dive deeper?** Check out the [Language Specification](/language-spec/overview) to learn all about Web+'s features.

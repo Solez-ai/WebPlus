@@ -1,0 +1,48 @@
+---
+title: "Server Deployment"
+description: "Running Web+ on the server via WASI"
+---
+
+# Server Deployment
+
+Web+ supports server-side execution via the WebAssembly System Interface (WASI).
+
+## Target Runtimes
+
+Web+ WASM files can run on any WASI-compliant runtime:
+- **Wasmtime** (Recommended)
+- **Wasmer**
+- **Node.js** (via `--experimental-wasi-unstable-preview1`)
+
+## Building for Server
+
+```bash
+webplus build main.webplus --target server -o build
+```
+
+## Running
+
+```bash
+# Using Wasmtime
+wasmtime build/main.wasm
+
+# Using the Web+ CLI
+webplus run build --server
+```
+
+---
+
+## Server-Specific Features
+
+- **File I/O**: Access the host filesystem via WASI virtualization.
+- **Environment Variables**: Read configurations from the host.
+- **Networking**: Experimental support for sockets in v0.1.
+
+---
+
+## Cloud Deployment
+
+You can deploy Web+ servers to "WASM-native" clouds:
+- **Fermyon Spin**
+- **Cloudflare Workers** (with WASM)
+- **Fastly Compute@Edge**

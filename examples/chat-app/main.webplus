@@ -1,0 +1,124 @@
+struct Message {
+    string username;
+    string content;
+    int timestamp;
+};
+
+Message* messages = alloc<Message>(100);
+int messageCount = 0;
+
+void sendMessage() {
+    dom::Element input = dom::get("#messageInput");
+    dom::Element username = dom::get("#usernameInput");
+    
+    string content = input.text();
+    string user = username.text();
+    
+    if (content.length() > 0) {
+        Message* msg = &messages[messageCount];
+        msg->username = user;
+        msg->content = content;
+        msg->timestamp = getTimestamp();
+        
+        messageCount++;
+        
+        displayMessage(msg);
+        input.text("");
+        
+        worker w = worker::spawn([msg] {
+            sendToServer(msg);
+            return 0;
+        });
+        w.detach();
+    }
+}
+
+void displayMessage(Message* msg) {
+    dom::Element chatBox = dom::get("#chatMessages");
+    
+    string html = "<div class='message'>";
+    html = html + "<strong>" + msg->username + ":</strong> ";
+    html += msg->content;
+    html += "</div>";
+    
+    string currentHtml = chatBox.html();
+    chatBox.html(currentHtml + html);
+    
+    scrollToBottom();
+}
+
+void scrollToBottom() {
+    dom::Element chatBox = dom::get("#chatMessages");
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+worker pollingWorker;
+
+void startPolling() {
+    pollingWorker = worker::spawn([] {
+        while (true) {
+            fetch("/api/messages")
+                .then([](Response r) {
+                    auto data = r.json();
+                    updateMessages(data);
+                });
+            
+            sleep(1000);
+        }
+        return 0;
+    });
+}
+
+void sendToServer(Message* msg) {
+    fetch("/api/messages", {
+        method: "POST",
+        body: json(msg)
+    }).then([](Response r) {
+        if (r.status() != 200) {
+            dom::get("#error").text("Failed to send message");
+        }
+    });
+}
+
+int getTimestamp() {
+    return (int)(Date.now() / 1000);
+}
+
+void updateMessages(auto data) {
+    // Update with new messages from server
+}
+
+void main() {
+    dom::Element sendBtn = dom::get("#sendButton");
+    dom::Element input = dom::get("#messageInput");
+    
+    sendBtn.on("click", [] {
+        sendMessage();
+    });
+    
+    input.on("keypress", [](Event e) {
+        if (e.key == "Enter") {
+            sendMessage();
+        }
+    });
+    
+    startPolling();
+    
+    dom::get("#status").text("Connected to chat server");
+}
+
+route GET "/api/messages" -> Response {
+    return json(messages, messageCount);
+}
+
+route POST "/api/messages" -> Response {
+    Message* msg = alloc<Message>(1);
+    parseJSON(requestBody(), msg);
+    
+    messages[messageCount] = *msg;
+    messageCount++;
+    
+    free(msg);
+    
+    return json({ "success": true });
+}

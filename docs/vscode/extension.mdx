@@ -1,0 +1,60 @@
+---
+title: "VS Code Extension"
+description: "Professional development experience for Web+"
+---
+
+# VS Code Extension
+
+The Web+ VS Code extension provides a comprehensive IDE experience for building systems-level web applications.
+
+## Features
+
+### Syntax Highlighting
+Full semantic highlighting for `.webplus` files, including:
+- Keywords (`route`, `worker`, `alloc`, etc.)
+- Types and Structs
+- Web primitives
+- Preprocessor directives
+
+### IntelliSense
+Context-aware completions for the Web+ Standard Library and your own code.
+
+### Diagnostics
+Real-time error reporting and linting as you type.
+
+### Build Integration
+Easy access to `webplus build` and `webplus serve` directly from the command palette.
+
+## Installation
+
+1. Navigate to the `vscode-extension` directory in the Web+ repository.
+2. Build the extension:
+   ```bash
+   npm install
+   npm run build
+   ```
+3. Install the generated VSIX file into VS Code:
+   ```bash
+   code --install-extension webplus-0.1.0.vsix
+   ```
+
+## Configuration
+
+You can configure the extension in your `settings.json`:
+
+```json
+{
+  "webplus.compilerPath": "/path/to/webplus-cli",
+  "webplus.formatOnSave": true,
+  "webplus.lintOnChange": true
+}
+```
+
+---
+
+## Roadmap
+
+Upcoming features for the VS Code extension:
+- **Debugger Integration**: Attach to WASM processes directly.
+- **Project Scaffolding**: Command to create new Web+ projects from templates.
+- **Resource Profiler**: Live view of WASM memory and performance.

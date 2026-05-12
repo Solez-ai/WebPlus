@@ -1,0 +1,112 @@
+{
+    "Function Declaration": {
+        "prefix": "func",
+        "body": [
+            "${1:void} ${2:functionName}(${3:params}) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create a function"
+    },
+    "Struct Declaration": {
+        "prefix": "struct",
+        "body": [
+            "struct ${1:Name} {",
+            "\t${2:int} ${3:field};",
+            "\t$0",
+            "};"
+        ],
+        "description": "Create a struct"
+    },
+    "Route Declaration": {
+        "prefix": "route",
+        "body": [
+            "route ${1|GET,POST,PUT,DELETE,PATCH|} \"${2:/path}\" -> Response {",
+            "\treturn ${3:json({ \"status\": \"ok\" })};",
+            "}"
+        ],
+        "description": "Create an HTTP route"
+    },
+    "DOM Get": {
+        "prefix": "dom",
+        "body": [
+            "dom::Element ${1:elem} = dom::get(\"${2:#selector}\");"
+        ],
+        "description": "Get a DOM element"
+    },
+    "Event Listener": {
+        "prefix": "on",
+        "body": [
+            "${1:elem}.on(\"${2:click}\", [] {",
+            "\t$0",
+            "});"
+        ],
+        "description": "Add event listener"
+    },
+    "Worker Spawn": {
+        "prefix": "worker",
+        "body": [
+            "worker ${1:w} = worker::spawn([] {",
+            "\treturn ${2:result};",
+            "});",
+            "${3:int} ${4:result} = ${1:w}.join();"
+        ],
+        "description": "Spawn a worker"
+    },
+    "Alloc Memory": {
+        "prefix": "alloc",
+        "body": [
+            "${1:int}* ${2:ptr} = alloc<${1:int}>(${3:size});",
+            "$0",
+            "free(${2:ptr});"
+        ],
+        "description": "Allocate memory"
+    },
+    "Fetch Request": {
+        "prefix": "fetch",
+        "body": [
+            "fetch(\"${1:url}\")",
+            "\t.then([](Response r) {",
+            "\t\t${2:auto data = r.json();}",
+            "\t\t$0",
+            "\t});"
+        ],
+        "description": "Fetch request"
+    },
+    "Main Function": {
+        "prefix": "main",
+        "body": [
+            "void main() {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create main function"
+    },
+    "If Statement": {
+        "prefix": "if",
+        "body": [
+            "if (${1:condition}) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "If statement"
+    },
+    "For Loop": {
+        "prefix": "for",
+        "body": [
+            "for (int ${1:i} = 0; ${1:i} < ${2:count}; ${1:i}++) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "For loop"
+    },
+    "While Loop": {
+        "prefix": "while",
+        "body": [
+            "while (${1:condition}) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "While loop"
+    }
+}

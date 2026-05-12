@@ -1,0 +1,120 @@
+---
+title: 'Memory API'
+description: 'Manual memory management primitives and allocators'
+---
+
+# Memory API
+
+Web+ is a systems-oriented language that provides explicit control over memory. This section details the core primitives and allocation patterns.
+
+## Primitive Types
+
+The standard library defines fixed-width and primitive types in the `webplus` namespace:
+
+```cpp
+webplus::int32      // 32-bit signed integer
+webplus::float32    // 32-bit single-precision float
+webplus::float64    // 64-bit double-precision float
+webplus::bool_t     // Boolean (true/false)
+webplus::char_t     // Single ASCII character
+```
+
+## Heap Allocation
+
+Use the `alloc` template function to allocate memory on the heap. You MUST manually free this memory using `free_ptr`.
+
+### alloc\<T\>
+
+Allocates a block of memory sufficient to hold `count` elements of type `T`.
+
+```cpp
+template<typename T>
+T* alloc(size_t count);
+```
+
+**Parameters:**
+- `count`: Number of elements to allocate.
+
+**Returns:**
+- A pointer to the newly allocated memory.
+
+### free_ptr\<T\>
+
+Deallocates memory previously allocated with `alloc`.
+
+```cpp
+template<typename T>
+void free_ptr(T* ptr);
+```
+
+**Parameters:**
+- `ptr`: Pointer to the memory block to be freed.
+
+---
+
+## String Class
+
+`webplus::String` is a manual-memory managed UTF-8 string.
+
+### Usage
+
+```cpp
+// Creation
+webplus::String name = "Web+";
+
+// Operations
+name.append(" is fast");
+size_t len = name.length();
+const char* raw = name.c_str();
+
+// Cleanup
+name.clear(); // Explicitly free the buffer
+```
+
+### Methods
+- `c_str()`: Returns a pointer to the null-terminated C-string.
+- `length()`: Returns the number of characters.
+- `empty()`: Returns true if the string is empty.
+- `append(const char*)`: Appends text to the string.
+- `clear()`: Frees the internal buffer.
+
+---
+
+## Arena Allocator
+
+The `Arena` allocator provides fast "bump" allocation for short-lived data. All memory is freed at once when the arena is reset.
+
+### Definition
+
+```cpp
+webplus::Arena<int> arena(1024); // 1024 elements
+int* data = arena.allocate(10);  // O(1) allocation
+arena.reset();                    // O(1) bulk free
+```
+
+**Best for:**
+- Temporary processing buffers
+- Per-frame request allocations
+- Batch processing
+
+---
+
+## StackArray\<T\>
+
+A thin wrapper around stack-allocated (fixed-size) arrays with safety checks.
+
+```cpp
+webplus::StackArray<int> arr(10);
+arr[0] = 5;
+size_t s = arr.size();
+```
+
+**Note:** Sizes must be known or fixed at allocation time.
+
+---
+
+## Best Practices
+
+1. **RAII-like clearing**: Always pair an allocation or string creation with an explicit `clear()` or `free_ptr()`.
+2. **Use Arenas for Temp Data**: Avoid heap fragmentation by using `Arena` for tasks that only need memory for a short duration.
+3. **Null Check**: Always verify the validity of elective pointers before dereferencing.

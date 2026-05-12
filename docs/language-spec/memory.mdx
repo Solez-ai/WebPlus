@@ -1,0 +1,107 @@
+---
+title: "Memory Management"
+description: "Detailed guide to Web+'s manual memory model"
+---
+
+# Memory Management
+
+Web+ is designed for performance and predictability. It provides a C++-inspired manual memory model, giving you full control over when and where memory is allocated and freed. There is **no garbage collector** in Web+.
+
+## The Linear Memory Model
+
+In the WebAssembly environment, all Web+ memory resides in a single, large buffer called **Linear Memory**. The runtime organizes this memory into several regions:
+
+1. **Stack**: Used for local variables and function call frames.
+2. **Heap**: Used for dynamic allocations via `alloc`.
+3. **Data**: Stores global constants and static data.
+
+---
+
+## Stack Allocation
+
+Stack allocation is automatic and handled by the compiler.
+
+```cpp
+void calculate() {
+    int x = 42;           // Allocated on stack
+    float arr[10];        // Allocated on stack
+    Point p = { 1, 2 };   // Allocated on stack
+} // All memory is automatically reclaimed here
+```
+
+- **Pros**: Extremely fast (O(1)), no manual cleanup.
+- **Cons**: Limited size, memory is lost when the function returns.
+
+---
+
+## Heap Allocation
+
+Dynamic memory is allocated using `webplus::alloc<T>(count)`. You are responsible for freeing this memory.
+
+```cpp
+// Allocate an array of 100 integers
+int* buffer = webplus::alloc<int>(100);
+
+// Use the buffer
+buffer[0] = 500;
+
+// MUST free to avoid memory leaks
+webplus::free_ptr(buffer);
+```
+
+### Safety Rules
+- **Double Free**: Never call `free_ptr` on the same pointer twice.
+- **Memory Leak**: Always ensure every `alloc` has a corresponding `free_ptr`.
+- **Dangling Pointer**: Do not use a pointer after it has been freed.
+
+---
+
+## Arena Allocation
+
+Arenas provide a way to perform many small allocations very quickly and free them all in a single operation.
+
+```cpp
+// Create an arena with 1MB of space
+webplus::Arena<char> tempPool(1024 * 1024);
+
+// Allocate many small objects
+char* s1 = tempPool.allocate(10);
+char* s2 = tempPool.allocate(20);
+
+// Free EVERYTHING at once
+tempPool.reset();
+```
+
+Arenas are ideal for tasks with a clear "end of life", such as processing a single HTTP request or a single frame in a game.
+
+---
+
+## Strings and Memory
+
+`webplus::String` is a wrapper around a heap-allocated char buffer.
+
+```cpp
+webplus::String s = "Hello";
+s.append(" World");
+
+// Strings must be cleared to free their internal heap buffer
+s.clear();
+```
+
+---
+
+## Memory Safety Features
+
+While Web+ is a low-level language, the compiler provides hints to help you stay safe:
+
+- **Uninitialized Warning**: The compiler warns if you use a variable before assigning it a value.
+- **Bounds Checking (Debug Only)**: In development builds (`webplus build --debug`), the runtime will throw an error if you access an array out of its allocated bounds.
+- **Null Checks**: You should explicitly check for `nullptr` when dealing with pointers returned from `get()` or `alloc()`.
+
+---
+
+## Best Practices
+
+1. **Prefer Stack over Heap**: Only used `alloc` when the data size is dynamic or needs to outlive the current function.
+2. **RAII (Resource Acquisition Is Initialization)**: Wrap pointers in structs that free the memory in their destructor (once Web+ fully supports destructors in v0.2).
+3. **Use the Arena**: For any task requiring multiple temporary allocations, use an `Arena` to simplify cleanup and improve performance.

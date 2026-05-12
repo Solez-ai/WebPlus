@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web+ Server API</title>
+    <style>
+        body {
+            background: #0f172a;
+            color: #f8fafc;
+            font-family: system-ui, -apple-system, sans-serif;
+            display: grid;
+            place-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .info {
+            max-width: 600px;
+            padding: 2rem;
+        }
+        h1 {
+            color: #22d3ee;
+        }
+        code {
+            background: #1e293b;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+        .endpoints {
+            text-align: left;
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        .endpoint {
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>Web+ Server API</h1>
+        <p>This is a server-side example that runs with WASI.</p>
+        <p>To test the API endpoints:</p>
+        <div class="endpoints">
+            <div class="endpoint"><code>GET /api/hello</code> - Returns a greeting</div>
+            <div class="endpoint"><code>GET /api/user/:id</code> - Returns user by ID</div>
+            <div class="endpoint"><code>POST /api/user</code> - Creates a new user</div>
+        </div>
+        <p style="margin-top: 1rem; color: #94a3b8;">
+            Note: This example requires a WASI runtime to execute.
+        </p>
+    </div>
+</body>
+</html>

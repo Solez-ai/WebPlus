@@ -1,0 +1,123 @@
+{
+    "name": "webplus-vscode",
+    "displayName": "Web+",
+    "description": "Language support for Web+ - A C++-inspired systems language for the web",
+    "version": "0.1.0",
+    "publisher": "Solez",
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Snippets",
+        "Linters"
+    ],
+    "keywords": [
+        "webplus",
+        "web+",
+        "webassembly",
+        "wasm",
+        "systems"
+    ],
+    "icon": "icon.png",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Solez-ai/webplus"
+    },
+    "license": "MIT",
+    "activationEvents": [
+        "onLanguage:webplus",
+        "onCommand:webplus.build",
+        "onCommand:webplus.run",
+        "onCommand:webplus.format"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "languages": [
+            {
+                "id": "webplus",
+                "aliases": [
+                    "Web+",
+                    "webplus"
+                ],
+                "extensions": [
+                    ".webplus"
+                ],
+                "configuration": "./language-configuration.json",
+                "icon": {
+                    "light": "./icon.png",
+                    "dark": "./icon.png"
+                }
+            }
+        ],
+        "grammars": [
+            {
+                "language": "webplus",
+                "scopeName": "source.webplus",
+                "path": "./syntaxes/webplus.tmLanguage.json"
+            }
+        ],
+        "snippets": [
+            {
+                "language": "webplus",
+                "path": "./snippets/webplus.json"
+            }
+        ],
+        "commands": [
+            {
+                "command": "webplus.build",
+                "title": "Web+: Build Project",
+                "category": "Web+"
+            },
+            {
+                "command": "webplus.run",
+                "title": "Web+: Run File",
+                "category": "Web+"
+            },
+            {
+                "command": "webplus.format",
+                "title": "Web+: Format Document",
+                "category": "Web+"
+            }
+        ],
+        "configuration": {
+            "title": "Web+",
+            "properties": {
+                "webplus.compiler.path": {
+                    "type": "string",
+                    "default": "webplus",
+                    "description": "Path to the Web+ compiler"
+                },
+                "webplus.linting.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable/disable linting"
+                },
+                "webplus.formatting.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable/disable auto-formatting"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "package": "vsce package"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "@types/vscode": "^1.80.0",
+        "typescript": "^5.3.0",
+        "vsce": "^1.97.0"
+    },
+    "dependencies": {
+        "child_process": "^1.0.2",
+        "path": "^0.12.7",
+        "vscode-languageclient": "^9.0.1",
+        "vscode-languageserver": "^9.0.1",
+        "vscode-languageserver-textdocument": "^1.0.11"
+    }
+}

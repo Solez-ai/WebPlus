@@ -1,0 +1,117 @@
+---
+title: 'DOM Manipulation'
+description: 'Interacting with the web page dynamically'
+---
+
+# DOM Manipulation Tutorial
+
+Web+ makes it easy to build dynamic interfaces by providing a type-safe interface for the browser's Document Object Model (DOM).
+
+## Dynamic Element Creation
+
+Instead of hardcoding every HTML element, you can create them on the fly:
+
+```webplus
+void main() {
+    dom::Element container = dom::get("#app");
+    
+    // Create a new heading
+    dom::Element header = dom::createElement("h1");
+    header.text("Interactive Dashboard");
+    
+    // Append it to our container
+    container.append(header);
+}
+```
+
+---
+
+## Styling and Classes
+
+You can modify an element's appearance by adding or removing CSS classes:
+
+```webplus
+void main() {
+    dom::Element banner = dom::get(".banner");
+    
+    // Toggle a class
+    if (banner.has_class("hidden")) {
+        banner.remove_class("hidden");
+        banner.add_class("visible");
+    }
+    
+    // Set direct style attributes
+    banner.set_attribute("style", "color: #22d3ee;");
+}
+```
+
+---
+
+## Event Handling
+
+Interactivity is driven by events. Web+ supports the `on()` method for binding functions to element events:
+
+```webplus
+void main() {
+    dom::Element btn = dom::get("#click-me");
+    
+    // Handle a click event using a lambda function
+    btn.on("click", [] {
+        webplus::print("Button was clicked!");
+        dom::get("#output").text("Action completed.");
+    });
+}
+```
+
+---
+
+## Building a Dynamic List
+
+Let's combine these concepts into a practical example:
+
+```webplus
+void main() {
+    dom::Element app = dom::get("#app");
+    dom::Element list = dom::createElement("ul");
+    
+    // Create items dynamically
+    for (int i = 1; i <= 5; i++) {
+        dom::Element item = dom::createElement("li");
+        item.text("List Item #" + toString(i));
+        
+        // Add some styling based on index
+        if (i % 2 == 0) {
+            item.add_class("even-item");
+        }
+        
+        list.append(item);
+    }
+    
+    app.append(list);
+}
+```
+
+---
+
+## Performance Considerations
+
+### JS Bridge Overhead
+Every call to `dom::get` or `dom::createElement` involves a small amount of overhead as the WASM runtime communicates with the browser's JavaScript engine. 
+
+**Tip**: Cache your element handles instead of re-getting them inside a loop:
+
+```webplus
+// POOR PERFORMANCE
+for(int i = 0; i < 100; i++) {
+    dom::get("#output").text(toString(i));
+}
+
+// OPTIMIZED PERFORMANCE
+dom::Element output = dom::get("#output");
+for(int i = 0; i < 100; i++) {
+    output.text(toString(i));
+}
+```
+
+## Next Steps
+Now that you can interact with the user, learn how to handle background tasks in the [Concurrency Tutorial](/tutorials/concurrency)!

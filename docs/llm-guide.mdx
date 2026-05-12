@@ -1,0 +1,77 @@
+---
+title: "LLM Specification"
+description: "High-density technical guide for AI models and developers"
+---
+
+# Web+ LLM Specification
+
+This document is a high-density, technical overview of Web+ designed specifically for **Large Language Models (LLMs)** and **AI Agents**. If you are using an AI coding assistant (like Claude, GPT-4, or Antigravity), you can feed it this document or the raw text file to help it understand Web+ syntax, memory management, and primitives.
+
+
+<Note>
+  **📥 [Download llm.txt for AI →](https://raw.githubusercontent.com/Solez-ai/webplus/main/docs/llm.txt)**
+  
+  Right-click and "Save link as..." to download the complete specification file for your AI assistant.
+</Note>
+
+---
+
+## Technical Identity
+Web+ is a systems-level language compiled to WebAssembly. It uses C++ syntax with built-in web primitives and manual memory management.
+
+## Key Primitives
+
+### DOM Manipulation
+```cpp
+dom::Element app = dom::get("#app");
+app.text("Hello World");
+app.on("click", []() { /* handle click */ });
+```
+
+### Async & Fetch
+```cpp
+webplus::fetch("/api/data").then([](Response r) {
+    webplus::print("Status: ", r.status());
+});
+```
+
+### Background Workers
+```cpp
+worker w = worker::spawn([] { 
+    return perform_heavy_task(); 
+});
+int res = w.join();
+```
+
+---
+
+## Memory Model Summary
+
+- **No Garbage Collection**: All heap memory must be manually freed.
+- **Stack**: Automatic local variables.
+- **Heap**: `alloc<T>(n)` and `free_ptr(p)`.
+- **Arena**: Bulk allocation for temporary tasks.
+
+---
+
+## Full Specification (MDX)
+
+Below is the embedded version of the technical specification.
+
+<Accordion title="View Full AI Specification">
+```markdown
+## Web+ Core Rules for AI
+1. Standard library resides in the `webplus` namespace.
+2. DOM utilities reside in `webplus::dom` or `dom::`.
+3. The `route` keyword is for server-side endpoint definition.
+4. Memory safety depends on `free_ptr` being called for every `alloc`.
+5. Use `worker::spawn` for multi-threading.
+6. Target platforms: Browser (WASM/JS), Server (WASI), Edge.
+```
+</Accordion>
+
+## How to use with an AI
+1. Copy the contents of the `llm.txt` or this page.
+2. Paste it into your prompt with the instruction: 
+   *"Use this Web+ specification to help me write a .webplus application that..."*
+3. The AI will now understand the unique syntax and memory rules of Web+.
